@@ -6,33 +6,33 @@ var make_sphere = function(r, center, triangleVertices, num_lat, num_lon, mass){
 			let a1 = (lat / (num_lat + 1)) * Math.PI; //radians away from straight up
 			let a2 = (lon / (num_lon)) * Math.PI * 2.0; //radians aorund circle
 
-			let x00 = center[0] + (r * Math.sin(a2) * Math.sin(a1));
-			let y00 = center[1] + (r * Math.cos(a1));
-			let z00 = center[2] + (r * Math.sin(a1) * Math.cos(a2));
+			let x00 = (r * Math.sin(a2) * Math.sin(a1));
+			let y00 = (r * Math.cos(a1));
+			let z00 = (r * Math.sin(a1) * Math.cos(a2));
 
 
 			let a3 = (lat / (num_lat + 1)) * Math.PI; //radians away from straight up
 			let a4 = ((lon + 1.0)/ (num_lon)) * Math.PI * 2.0; //radians aorund circle
 
-			let x10 = center[0] + (r * Math.sin(a4) * Math.sin(a3));
-			let y10 = center[1] + (r * Math.cos(a3));
-			let z10 = center[2] + (r * Math.sin(a3) * Math.cos(a4));
+			let x10 = (r * Math.sin(a4) * Math.sin(a3));
+			let y10 = (r * Math.cos(a3));
+			let z10 = (r * Math.sin(a3) * Math.cos(a4));
 
 
 			let a5 = ((lat-1.0) / (num_lat + 1)) * Math.PI; //radians away from straight up
 			let a6 = ((lon + 1.0)/ (num_lon)) * Math.PI * 2.0; //radians aorund circle
 
-			let x11 = center[0] + (r * Math.sin(a6) * Math.sin(a5));
-			let y11 = center[1] + (r * Math.cos(a5));
-			let z11 = center[2] + (r * Math.sin(a5) * Math.cos(a6));
+			let x11 = (r * Math.sin(a6) * Math.sin(a5));
+			let y11 = (r * Math.cos(a5));
+			let z11 = (r * Math.sin(a5) * Math.cos(a6));
 
 
 			let a7 = ((lat-1.0) / (num_lat + 1)) * Math.PI; //radians away from straight up
 			let a8 = ((lon)/ (num_lon)) * Math.PI * 2.0; //radians aorund circle
 
-			let x01 = center[0] + (r * Math.sin(a8) * Math.sin(a7));
-			let y01 = center[1] + (r * Math.cos(a7));
-			let z01 = center[2] + (r * Math.sin(a7) * Math.cos(a8));
+			let x01 = (r * Math.sin(a8) * Math.sin(a7));
+			let y01 = (r * Math.cos(a7));
+			let z01 = (r * Math.sin(a7) * Math.cos(a8));
 
 			triangleVertices.push(x00)
 			triangleVertices.push(y00)
@@ -94,28 +94,50 @@ var make_sphere = function(r, center, triangleVertices, num_lat, num_lon, mass){
 	return object;
 };
 
+var v_add = function(v1, v2){
+	return [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]];
+};
+
+var v_sub = function(v1, v2){
+	return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]];
+}
+
+var v_div = function(v, n){
+	return [v[0]/n, v[1]/n, v[2]/n];
+}
+
+var v_mul = function(v, n){
+	return [v[0]*n, v[1]*n, v[2]*n];
+}
+
 var distanct = function(v1, v2){
-	return Math.sqrt(Math.sqr(v1[0]-v2[0]) + Math.sqr(v1[1]-v2[1]) + Math.sqr(v1[2]-v2[2]));
+	var dist = Math.sqrt(Math.pow(v1[0]-v2[0], 2) + Math.pow(v1[1]-v2[1],2) + Math.pow(v1[2]-v2[2], 2));
+	return dist
 }
 
 var direction = function(v1, v2){
-	(v2 - v1) / distanct(v2, v1)
+	return v_div(v_sub(v2,v1),distanct(v2, v1))
 }
 
 var calculate_forces = function(object, objects){
-	objects.forces = [0.0,0.0,0.0];
+	object.forces = [0.0,0.0,0.0];
 	for(var obj_ind = 0; obj_ind < objects.length; ++obj_ind){
 		let to_compare = objects[obj_ind];
 		if(object != to_compare){
-			let force_magnitude = (object.mass * to_compare.mass) / distanct(object.center, to_compare.center);
-			let force_direction = direction(object, to_compare);
-			forces += force_magnitude * force_direction;
+			let force_magnitude = (object.mass * to_compare.mass) / Math.pow(distanct(object.center, to_compare.center), 2);
+			let force_direction = direction(object.center, to_compare.center);
+			object.forces[0] += force_magnitude * force_direction[0];
+			object.forces[1] += force_magnitude * force_direction[1];
+			object.forces[2] += force_magnitude * force_direction[2];
+
 		}
 	}
 };
 
 var calculate_new_position = function(object, delta_t){
-	return object.center + (object.center - object.last_position)*delta_t + (object.forces/object.mass)*delta_t*delta_t;
+	let velocity = v_sub(object.center, object.last_position);
+	let acceleration = v_div(object.forces,object.mass);
+	return v_add(v_add(object.center, velocity), v_mul(acceleration, delta_t*delta_t));
 };
 
 var InitDemo = function(){
@@ -266,9 +288,12 @@ var InitDemo = function(){
 		var vertices_so_far = 0
 		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
 			let object = scene_objects[object_ind];
+			calculate_forces(object, scene_objects);
+			object.last_center = object.center
+			object.center = calculate_new_position(object, .001);
 
-			//			input         original matrix  angle   axis
-			mat4.translate(world_matrix, identity_matrix, [0,angle,0]);
+			//			   input         original matrix  vector to translate by
+			mat4.translate(world_matrix, identity_matrix, object.center);
 			gl.uniformMatrix4fv(world_uniform_location, gl.FALSE, world_matrix);
 
 			gl.drawArrays(gl.TRIANGLES, vertices_so_far , object.num_vertices);
