@@ -1,5 +1,4 @@
-var make_sphere = function(r, center, triangleVertices, num_lat, num_lon){
-
+var make_sphere = function(r, center, triangleVertices, num_lat, num_lon, mass){
 	var num_vertices = 0
 
 	for (let lat = 1.0; lat <= num_lat + 1.0; ++lat) {
@@ -85,8 +84,38 @@ var make_sphere = function(r, center, triangleVertices, num_lat, num_lon){
 
 		}
 	}
+	var object = {type:"sphere", 
+					radius:r, 
+					center:center, 
+					num_vertices:num_vertices,
+					mass:mass,
+					last_position:center
+				};
+	return object;
+};
 
-	return num_vertices;
+var distanct = function(v1, v2){
+	return Math.sqrt(Math.sqr(v1[0]-v2[0]) + Math.sqr(v1[1]-v2[1]) + Math.sqr(v1[2]-v2[2]));
+}
+
+var direction = function(v1, v2){
+	(v2 - v1) / distanct(v2, v1)
+}
+
+var calculate_forces = function(object, objects){
+	objects.forces = [0.0,0.0,0.0];
+	for(var obj_ind = 0; obj_ind < objects.length; ++obj_ind){
+		let to_compare = objects[obj_ind];
+		if(object != to_compare){
+			let force_magnitude = (object.mass * to_compare.mass) / distanct(object.center, to_compare.center);
+			let force_direction = direction(object, to_compare);
+			forces += force_magnitude * force_direction;
+		}
+	}
+};
+
+var calculate_new_position = function(object, delta_t){
+	return object.center + (object.center - object.last_position)*delta_t + (object.forces/object.mass)*delta_t*delta_t;
 };
 
 var InitDemo = function(){
@@ -143,8 +172,16 @@ var InitDemo = function(){
 	// create buffer
 	//
 	var triangleVertices = [];
-	var num_vertices_s1 = make_sphere(.5, [0.5,0.0,0.0], triangleVertices, 8.0, 16.0);
-	var num_vertices_s2 = make_sphere(.25, [-0.5,0.0,0.0], triangleVertices, 8.0, 8.0);
+	var scene_objects = [];
+
+	var sphere1 = make_sphere(.5, [0.5,0.0,0.0], triangleVertices, 8.0, 16.0, 10);
+	scene_objects.push(sphere1);
+
+	var sphere2 = make_sphere(.25, [-0.5,0.0,0.0], triangleVertices, 8.0, 8.0, 5);
+	scene_objects.push(sphere2);
+
+	var sphere3 = make_sphere(.15, [-0.8,0.0,0.0], triangleVertices, 8.0, 4.0, 3);
+	scene_objects.push(sphere3);
 
 
 
@@ -212,10 +249,12 @@ var InitDemo = function(){
 	//
 	// Main render loop
 	//
+
 	var identity_matrix = new Float32Array(16);
 	mat4.identity(identity_matrix);
 	var angle = 0;
 	gl.enable(gl.DEPTH_TEST);
+
 	var loop = function() {
 
 		gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -224,16 +263,17 @@ var InitDemo = function(){
 		//		mil Math.since start   to secs     one full rotation per six seconds 
 		angle = performance.now() / 1000     / 6 * 2 * Math.PI;
 
-		//			input         original matrix  angle   axis
-		mat4.rotate(world_matrix, identity_matrix, angle, [0,1,0]);
-		gl.uniformMatrix4fv(world_uniform_location, gl.FALSE, world_matrix);
+		var vertices_so_far = 0
+		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
+			let object = scene_objects[object_ind];
 
-		gl.drawArrays(gl.TRIANGLES, 0 , num_vertices_s1);
+			//			input         original matrix  angle   axis
+			mat4.translate(world_matrix, identity_matrix, [0,angle,0]);
+			gl.uniformMatrix4fv(world_uniform_location, gl.FALSE, world_matrix);
 
-		mat4.rotate(world_matrix, identity_matrix, angle, [0,1,0]);
-		gl.uniformMatrix4fv(world_uniform_location, gl.FALSE, world_matrix);
-
-		gl.drawArrays(gl.TRIANGLES, num_vertices_s1 , num_vertices_s2);
+			gl.drawArrays(gl.TRIANGLES, vertices_so_far , object.num_vertices);
+			vertices_so_far += object.num_vertices;
+		}
 
 		requestAnimationFrame(loop)
 	};
