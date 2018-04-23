@@ -1,4 +1,4 @@
-var make_sphere = function(r, center, triangleVertices, num_lat, num_lon, mass){
+var make_sphere = function(r, center, triangleVertices, num_lat, num_lon, mass, last_position){
 	var num_vertices = 0
 
 	for (let lat = 1.0; lat <= num_lat + 1.0; ++lat) {
@@ -89,7 +89,7 @@ var make_sphere = function(r, center, triangleVertices, num_lat, num_lon, mass){
 					center:center, 
 					num_vertices:num_vertices,
 					mass:mass,
-					last_position:center
+					last_position:last_position
 				};
 	return object;
 };
@@ -136,7 +136,11 @@ var calculate_forces = function(object, objects){
 
 var calculate_new_position = function(object, delta_t){
 	let velocity = v_sub(object.center, object.last_position);
-	let acceleration = v_div(object.forces,object.mass);
+	let acceleration = 0.0;
+	if(object.mass != 0.0){
+		acceleration = v_div(object.forces, object.mass);
+	}
+	console.log(velocity, object.forces);
 	return v_add(v_add(object.center, velocity), v_mul(acceleration, delta_t*delta_t));
 };
 
@@ -196,14 +200,11 @@ var InitDemo = function(){
 	var triangleVertices = [];
 	var scene_objects = [];
 
-	var sphere1 = make_sphere(.5, [0.5,0.0,0.0], triangleVertices, 8.0, 16.0, 10);
+	var sphere1 = make_sphere(.5, [0.5,0.0,0.0], triangleVertices, 8.0, 16.0, 7, [0.5,0.0,0.0]);
 	scene_objects.push(sphere1);
 
-	var sphere2 = make_sphere(.25, [-0.5,0.0,0.0], triangleVertices, 8.0, 8.0, 5);
+	var sphere2 = make_sphere(.25, [-0.5,0.0,0.0], triangleVertices, 8.0, 8.0, .5, [-0.5,0.0,.35]);
 	scene_objects.push(sphere2);
-
-	var sphere3 = make_sphere(.15, [-0.8,0.0,0.0], triangleVertices, 8.0, 4.0, 3);
-	scene_objects.push(sphere3);
 
 
 
@@ -260,8 +261,8 @@ var InitDemo = function(){
 	var view_matrix = new Float32Array(16);
 	var projection_matrix = new Float32Array(16);
 	mat4.identity(world_matrix);
-	mat4.lookAt(view_matrix, [0,-2,-5], [0,0,0], [0,1,0]); // camera: location, position looking at, direction, that it up
-	mat4.perspective(projection_matrix, glMatrix.toRadian(45), canvas.clientWidth/canvas.clientHeight, 0.1, 1000.0); // fov in rad, aspect ratio width/height, near plane and far plane; 
+	mat4.lookAt(view_matrix, [0,5,-5], [0,0,0], [0,0,1]); // camera: location, position looking at, direction, that it up
+	mat4.perspective(projection_matrix, glMatrix.toRadian(90), canvas.clientWidth/canvas.clientHeight, 0.1, 1000.0); // fov in rad, aspect ratio width/height, near plane and far plane; 
 
 	//sending to shader
 	gl.uniformMatrix4fv(world_uniform_location, gl.FALSE, world_matrix); //uniform matrix of floats. gl.FALSE just indicates that we don't want the transpose
@@ -289,8 +290,9 @@ var InitDemo = function(){
 		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
 			let object = scene_objects[object_ind];
 			calculate_forces(object, scene_objects);
-			object.last_center = object.center
-			object.center = calculate_new_position(object, .001);
+			let old_center = object.center;
+			object.center = calculate_new_position(object, .1);
+			object.last_position = old_center;
 
 			//			   input         original matrix  vector to translate by
 			mat4.translate(world_matrix, identity_matrix, object.center);
