@@ -1,12 +1,12 @@
 
 <html>
 	<head>
-
+		<title>Milestone</title>
+		<link rel="stylesheet" type="text/css" href="milestone_style.css">
 	</head>
-
 	<body>
 		<h1> Gravitational Pinball: Milestone </h1>
-		<h2> interactive gravity simulation running in real time in webGL </h2>
+		<h3 class="sub"> <i> interactive gravity simulation running in real time in webGL </i></h2>
 
 		<h2> Accomplishments </h2>
 
@@ -24,12 +24,15 @@
 				<p> The Primary portion of our project involves simulating gravity. In addition to the triangles which make up a sphere, we give spheres a number of other properites including mass. This allows us to to calculate forces which will move the spheres in relation to one another. Because we have each sphere's mass, to calculate the total force we will simply interate through all of the other spheres and calculate the force of gravity between them
 				</p>
 
-				<i><sup>(G * M<sub>1</sub> * M<sub>2</sub>)</sup>&frasl;<sub>r<sup>2</sup></sub></i>
+				<div class="equation">
+					<i>(G * M<sub>1</sub> * M<sub>2</sub>) / r<sup>2</sup></i>
+				</div>
 
 				<p>The direction of this force will of course be the unit vector pointing from the sphere of interests center, to the center of the other sphere. Once we have net force acting on a sphere, we can get its acceleration by simply dividing my it's mass. We can also get a good approximation of it's velocity by taking the difference between it's last positing and it's current position. Through these peices, we can solve for the sphere's new positiong by substituting these values into the formula: 
 				</p>
-
-				<i>X<sub>new</sub> = X<sub>old</sub> + V*t + A*t<sup>2</sup></i>
+				<div class="equation">
+					<i>X<sub>new</sub> = X<sub>old</sub> + V*t + A*t<sup>2</sup></i>
+				</div>
 
 				<p> Where the time is simply derived from our framerate. With all of these peices we have a fairly robust gravity simulation from which we can see emergant properties such as planet orbits, and Kepler's laws of planetary motion.</p>
 			</li>
@@ -39,5 +42,10 @@
 				<p> Up until this point, planets are able to clip through each other. In addition to looking strange, this has an unforntunate consequence of two planet centers coming arbitrarily close together and the force between them nearing infinity. In order to rectify this, we impliment a 'bouncing' feature. When two planets clip through one another (that is, a planet is moved such that it the distance between it's center and the center of another planet is less than the sum of their radii), instead of applying an attractive gravitation force between them, we apply a repelling force. <p>
 			</li>
 		</ul>
+
+		<h2> Timeline </h2>
+		<h3 class="sub"> <i>"It was the best of times, it was the worst of times"</i></h3>
+
+		<p> In some ways our project is ahead os scheduele, while in other it is behind. By this point,we had not planned on effectivly having physics simulation, which we have largely completed. We did, however, plan on completing rendering effects such as dynamic lighting. This has not been completed. Our new timeline prioritzes fucntionallity over these visual effects, which I beleive we be better suited to what we have left to do. By focusing on function over form in the early stages we've been able to better debugg simulations aspects which has lead to easier development. It is also a better reflection of our priorites. Our next steps will be to introduce interactivity (a user should be able to create and 'fire' planets off to see the effects). After this is completed we will move on to visual aspects such as texture mapping and dynamic lighting, followed finally by compiling all of the parts into a package to make it into a game with a goal and a score. </p>
 	</body>
 </html>
