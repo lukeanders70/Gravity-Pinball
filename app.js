@@ -126,9 +126,17 @@ var calculate_forces = function(object, objects){
 		if(object != to_compare){
 			let force_magnitude = (object.mass * to_compare.mass) / Math.pow(distanct(object.center, to_compare.center), 2);
 			let force_direction = direction(object.center, to_compare.center);
-			object.forces[0] += force_magnitude * force_direction[0];
-			object.forces[1] += force_magnitude * force_direction[1];
-			object.forces[2] += force_magnitude * force_direction[2];
+
+			if(distanct(object.center, to_compare.center) > object.radius + to_compare.radius){
+				object.forces[0] += force_magnitude * force_direction[0];
+				object.forces[1] += force_magnitude * force_direction[1];
+				object.forces[2] += force_magnitude * force_direction[2];
+			}
+			else{
+				object.forces[0] += force_magnitude * -1*force_direction[0];
+				object.forces[1] += force_magnitude * -1*force_direction[1];
+				object.forces[2] += force_magnitude * -1*force_direction[2];
+			}
 
 		}
 	}
@@ -200,11 +208,15 @@ var InitDemo = function(){
 	var triangleVertices = [];
 	var scene_objects = [];
 
-	var sphere1 = make_sphere(.5, [0.5,0.0,0.0], triangleVertices, 8.0, 16.0, 7, [0.5,0.0,0.0]);
+	var sphere1 = make_sphere(.5, [0.5,0.0,0.0], triangleVertices, 8.0, 16.0, .7, [0.5,0.0,0.0]);
 	scene_objects.push(sphere1);
 
-	var sphere2 = make_sphere(.25, [-0.5,0.0,0.0], triangleVertices, 8.0, 8.0, .5, [-0.5,0.0,.35]);
+	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], triangleVertices, 8.0, 8.0, .05, [-1.5,0.0,.06]);
 	scene_objects.push(sphere2);
+
+	var sphere2 = make_sphere(.15, [3.5,0.0,0.0], triangleVertices, 8.0, 8.0, .02, [3.5,0.0,-.04]);
+	scene_objects.push(sphere2);
+
 
 
 
