@@ -4,9 +4,25 @@
 		<title>Milestone</title>
 		<link rel="stylesheet" type="text/css" href="milestone_style.css">
 	</head>
-	<body>
+	<body onload="InitDemo();">
 		<h1> Gravitational Pinball: Milestone </h1>
 		<h3 class="sub"> <i> interactive gravity simulation running in real time in webGL </i></h2>
+
+		<canvas id="render_canvas" style="width:500; height:500;     padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;" >
+			Your Browser Does not support WebGl
+		</canvas>
+		<button onclick="InitDemo();" style="padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;"> Restart Demo </button>
+		<br />
+		<script src="app.js"></script>
+		<script src="gl-matrix.js"></script>
 
 		<h2> Accomplishments </h2>
 
@@ -48,4 +64,31 @@
 
 		<p> In some ways our project is ahead os scheduele, while in other it is behind. By this point,we had not planned on effectivly having physics simulation, which we have largely completed. We did, however, plan on completing rendering effects such as dynamic lighting. This has not been completed. Our new timeline prioritzes fucntionallity over these visual effects, which I beleive we be better suited to what we have left to do. By focusing on function over form in the early stages we've been able to better debugg simulations aspects which has lead to easier development. It is also a better reflection of our priorites. Our next steps will be to introduce interactivity (a user should be able to create and 'fire' planets off to see the effects). After this is completed we will move on to visual aspects such as texture mapping and dynamic lighting, followed finally by compiling all of the parts into a package to make it into a game with a goal and a score. </p>
 	</body>
+	<!-- Vertex Shader for WebGL, not to be rendered-->
+	<script id="vertex_shader" type="not-javascript">
+		precision mediump float;
+
+		attribute vec3 vertPosition;
+		attribute vec3 vertColor;
+		varying vec3 fragColor;
+		uniform mat4 world_matrix_render;
+		uniform mat4 view_matrix_render;
+		uniform mat4 projection_matrix_render;
+
+		void main(){
+			fragColor = vertColor;
+			gl_Position = projection_matrix_render * view_matrix_render * world_matrix_render * vec4(vertPosition, 1.0);
+		}
+	</script>
+
+	<!-- Fragment Shader for WebGL, not to be rendered-->
+	<script id="fragment_shader" type="not-javascript">
+		precision mediump float;
+
+		varying vec3 fragColor;
+
+		void main(){
+			gl_FragColor = vec4(fragColor, 1.0);
+		}
+	</script>
 </html>
