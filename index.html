@@ -1,50 +1,95 @@
+
 <html>
 	<head>
-		<title>WebGL</title>
-		<link rel="stylesheet" type="text/css" href="style.css">
+		<title>Milestone</title>
+		<link rel="stylesheet" type="text/css" href="milestone_style.css">
 	</head>
-
 	<body onload="InitDemo();">
-		<canvas id="render_canvas">
+		<h1> Gravitational Pinball: Milestone </h1>
+		<h3 class="sub"> <i> interactive gravity simulation running in real time in webGL </i></h2>
+
+		<canvas id="render_canvas" style="width:500; height:500;     padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;" >
 			Your Browser Does not support WebGl
 		</canvas>
+		<button onclick="InitDemo();" style="padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    "> Restart Demo </button>
 		<br />
-
-		<i> Canvas is above this text </i>
 		<script src="app.js"></script>
 		<script src="gl-matrix.js"></script>
 
-		<!-- Vertex Shader for WebGL, not to be rendered-->
-		<script id="vertex_shader" type="not-javascript">
-			precision mediump float;
+		<h2> Accomplishments </h2>
 
-			attribute vec3 vertPosition;
-			attribute vec3 vertColor;
-			varying vec3 fragColor;
-			uniform mat4 world_matrix_render;
-			uniform mat4 view_matrix_render;
-			uniform mat4 projection_matrix_render;
+		<ul>
+			<li>
+				<h3>WebGL Running</h3>
+				<p>It was important to us that we make our project more or less from scratch. The Ray Tracing 2 projects included a section on WebGL that might well have served as a starting point, but one of the main reasons for choosing this particular focus for our project was out of a desire to really learn the framework from the ground up. As such, a good portion of the first part of our project (which we thankfully allocated time for) was in getting WebGL up and running. The framework has a relativly high upfront cost of on the order of 100 lines of code to render a stationary triangle, so writting and understanding these setup steps was a big hurdle to getting started.
+			</li>
+			<li>
+				<h3>Rendering Spheres</h3>
+				<p> Once we were able to render a triangle in 3D space, our next step was to encode the rendering of a sphere, which is the shape of most of the objects we will be rendering throughout the project. We, again, elected to do this from scratch. Out method involved forming a sphere from triangles by dividing the sphere into latitudes and logitudes, much like you would a real planet. A constructor funciton takes in the number of latitudinal lines and logitudinal lines of the desired output sphere. We then iterate across two angles: directly up (towards the north pole) to 180 degrees in the other direction, and directly out along the x axis, all the way back around 360 degrees. For example, if we wish to only have 1 latitude line and 4 longitude lines (this owuld look like a diamond shape) our first angle would start at 0, then 90, then 180 and our second angle would start at 0, then 90, then 180, then 270, then 360. In general, each section of the iteration will give us a quadrilateral segment on the surface of the sphere which we will fill with two triangles. 
+			</li>
+			<li>
+				<h3>Simulating Gravity</h3>
+				<p> The Primary portion of our project involves simulating gravity. In addition to the triangles which make up a sphere, we give spheres a number of other properites including mass. This allows us to to calculate forces which will move the spheres in relation to one another. Because we have each sphere's mass, to calculate the total force we will simply interate through all of the other spheres and calculate the force of gravity between them
+				</p>
 
-			void main(){
-				fragColor = vertColor;
-				gl_Position = projection_matrix_render * view_matrix_render * world_matrix_render * vec4(vertPosition, 1.0);
-			}
-		</script>
+				<div class="equation">
+					<i>(G * M<sub>1</sub> * M<sub>2</sub>) / r<sup>2</sup></i>
+				</div>
 
-		<!-- Fragment Shader for WebGL, not to be rendered-->
-		<script id="fragment_shader" type="not-javascript">
-			precision mediump float;
+				<p>The direction of this force will of course be the unit vector pointing from the sphere of interests center, to the center of the other sphere. Once we have net force acting on a sphere, we can get its acceleration by simply dividing my it's mass. We can also get a good approximation of it's velocity by taking the difference between it's last positing and it's current position. Through these peices, we can solve for the sphere's new positiong by substituting these values into the formula: 
+				</p>
+				<div class="equation">
+					<i>X<sub>new</sub> = X<sub>old</sub> + V*t + A*t<sup>2</sup></i>
+				</div>
 
-			varying vec3 fragColor;
+				<p> Where the time is simply derived from our framerate. With all of these peices we have a fairly robust gravity simulation from which we can see emergant properties such as planet orbits, and Kepler's laws of planetary motion.</p>
+			</li>
+			<li>
+				<h3>Planet Collisions</h3>
 
-			void main(){
-				gl_FragColor = vec4(fragColor, 1.0);
-			}
-		</script>
+				<p> Up until this point, planets are able to clip through each other. In addition to looking strange, this has an unforntunate consequence of two planet centers coming arbitrarily close together and the force between them nearing infinity. In order to rectify this, we impliment a 'bouncing' feature. When two planets clip through one another (that is, a planet is moved such that it the distance between it's center and the center of another planet is less than the sum of their radii), instead of applying an attractive gravitation force between them, we apply a repelling force. <p>
+			</li>
+		</ul>
 
-		<button onclick="InitDemo();"> Restart Demo </button>
-		<button onclick="AddPlanet();"> Add Planet </button>
+		<h2> Timeline </h2>
+		<h3 class="sub"> <i>"It was the best of times, it was the worst of times"</i></h3>
 
+		<p> In some ways our project is ahead os scheduele, while in other it is behind. By this point,we had not planned on effectivly having physics simulation, which we have largely completed. We did, however, plan on completing rendering effects such as dynamic lighting. This has not been completed. Our new timeline prioritzes fucntionallity over these visual effects, which I beleive we be better suited to what we have left to do. By focusing on function over form in the early stages we've been able to better debugg simulations aspects which has lead to easier development. It is also a better reflection of our priorites. Our next steps will be to introduce interactivity (a user should be able to create and 'fire' planets off to see the effects). After this is completed we will move on to visual aspects such as texture mapping and dynamic lighting, followed finally by compiling all of the parts into a package to make it into a game with a goal and a score. </p>
 	</body>
+	<!-- Vertex Shader for WebGL, not to be rendered-->
+	<script id="vertex_shader" type="not-javascript">
+		precision mediump float;
 
+		attribute vec3 vertPosition;
+		attribute vec3 vertColor;
+		varying vec3 fragColor;
+		uniform mat4 world_matrix_render;
+		uniform mat4 view_matrix_render;
+		uniform mat4 projection_matrix_render;
+
+		void main(){
+			fragColor = vertColor;
+			gl_Position = projection_matrix_render * view_matrix_render * world_matrix_render * vec4(vertPosition, 1.0);
+		}
+	</script>
+
+	<!-- Fragment Shader for WebGL, not to be rendered-->
+	<script id="fragment_shader" type="not-javascript">
+		precision mediump float;
+
+		varying vec3 fragColor;
+
+		void main(){
+			gl_FragColor = vec4(fragColor, 1.0);
+		}
+	</script>
 </html>

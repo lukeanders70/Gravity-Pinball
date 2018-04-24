@@ -1,0 +1,50 @@
+<html>
+	<head>
+		<title>WebGL</title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+	</head>
+
+	<body onload="InitDemo();">
+		<canvas id="render_canvas">
+			Your Browser Does not support WebGl
+		</canvas>
+		<br />
+
+		<i> Canvas is above this text </i>
+		<script src="app.js"></script>
+		<script src="gl-matrix.js"></script>
+
+		<!-- Vertex Shader for WebGL, not to be rendered-->
+		<script id="vertex_shader" type="not-javascript">
+			precision mediump float;
+
+			attribute vec3 vertPosition;
+			attribute vec3 vertColor;
+			varying vec3 fragColor;
+			uniform mat4 world_matrix_render;
+			uniform mat4 view_matrix_render;
+			uniform mat4 projection_matrix_render;
+
+			void main(){
+				fragColor = vertColor;
+				gl_Position = projection_matrix_render * view_matrix_render * world_matrix_render * vec4(vertPosition, 1.0);
+			}
+		</script>
+
+		<!-- Fragment Shader for WebGL, not to be rendered-->
+		<script id="fragment_shader" type="not-javascript">
+			precision mediump float;
+
+			varying vec3 fragColor;
+
+			void main(){
+				gl_FragColor = vec4(fragColor, 1.0);
+			}
+		</script>
+
+		<button onclick="InitDemo();"> Restart Demo </button>
+		<button onclick="AddPlanet();"> Add Planet </button>
+
+	</body>
+
+</html>
