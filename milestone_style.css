@@ -1,0 +1,31 @@
+body{
+	margin: 10%;
+	font-family: arial;
+}
+
+h1{
+	text-align: center;
+}
+
+h2{
+	text-align: center;
+	margin-top: 50px;
+}
+
+.sub{
+	color: gray;
+	text-align: center;
+}
+
+ul{
+	list-style-type : none;
+}
+
+p{
+	margin: 30px;
+}
+
+.equation{
+	text-align: center;
+	font-size: 20px;
+}

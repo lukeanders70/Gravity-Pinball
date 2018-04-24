@@ -152,6 +152,7 @@ var calculate_new_position = function(object, delta_t){
 	return v_add(v_add(object.center, velocity), v_mul(acceleration, delta_t*delta_t));
 };
 
+
 var InitDemo = function(){
 
 	var canvas = document.getElementById('render_canvas');
