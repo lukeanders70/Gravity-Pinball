@@ -1,3 +1,5 @@
+var mousedownID = -1;  //indicates if mouse is down
+
 var make_sphere = function(r, center, num_lat, num_lon, mass, last_position){
 	var num_vertices = 0
 
@@ -116,18 +118,61 @@ var v_mul = function(v, n){
 	return [v[0]*n, v[1]*n, v[2]*n];
 }
 
-var distanct = function(v1, v2){
+function v_rotateY(out, a, b, c) {
+  var p = [],
+      r = [];
+  //Translate point to the origin
+  p[0] = a[0] - b[0];
+  p[1] = a[1] - b[1];
+  p[2] = a[2] - b[2];
+
+  //perform rotation
+  r[0] = p[2] * Math.sin(c) + p[0] * Math.cos(c);
+  r[1] = p[1];
+  r[2] = p[2] * Math.cos(c) - p[0] * Math.sin(c);
+
+  //translate to correct position
+  out[0] = r[0] + b[0];
+  out[1] = r[1] + b[1];
+  out[2] = r[2] + b[2];
+
+  return out;
+}
+
+
+var distance = function(v1, v2){
 	var dist = Math.sqrt(Math.pow(v1[0]-v2[0], 2) + Math.pow(v1[1]-v2[1],2) + Math.pow(v1[2]-v2[2], 2));
 	return dist
 }
 
 var direction = function(v1, v2){
-	return v_div(v_sub(v2,v1),distanct(v2, v1))
+	return v_div(v_sub(v2,v1),distance(v2, v1))
 }
 
-var v_angle = function(){
-
+var v_dot = function(v1, v2){
+	return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
 };
+
+var find_fe = function(origin, point){
+	let vec = v_sub(point, origin);
+	vec[1] = 0.0 //project onto xz plane
+	if(vec[2] <=0){
+		return Math.acos(v_dot(vec,[1.0,0.0,0.0]) / distance(vec, [0.0,0.0,0.0]));
+	}else{
+		return 2*Math.PI - Math.acos(v_dot(vec,[1.0,0.0,0.0]) / distance(vec, [0.0,0.0,0.0]));
+	}
+}
+
+var find_theta = function(origin, point){
+	let vec = v_sub(point, origin);
+	return Math.acos(v_dot(vec,[0.0,1.0,0.0]) / distance(vec, [0.0,0.0,0.0]));
+}
+var unit_from_theta_fe = function(theta, fe){
+	var vec =[Math.sin(theta), Math.cos(theta), 0.0];
+	var ret = [0.0,0.0,0.0]
+	v_rotateY(ret, vec, [0.0,1.0,0.0], fe);
+	return ret;
+}
 
 /////////////////////////////////////////////////
 //////// PHYSICS SIMULATION ////////////////////
@@ -138,10 +183,10 @@ var calculate_forces = function(object, objects){
 	for(var obj_ind = 0; obj_ind < objects.length; ++obj_ind){
 		let to_compare = objects[obj_ind];
 		if(object != to_compare){
-			let force_magnitude = (object.mass * to_compare.mass) / Math.pow(distanct(object.center, to_compare.center), 2);
+			let force_magnitude = (object.mass * to_compare.mass) / Math.pow(distance(object.center, to_compare.center), 2);
 			let force_direction = direction(object.center, to_compare.center);
 
-			if(distanct(object.center, to_compare.center) > object.radius + to_compare.radius){
+			if(distance(object.center, to_compare.center) > object.radius + to_compare.radius){
 				object.forces[0] += force_magnitude * force_direction[0];
 				object.forces[1] += force_magnitude * force_direction[1];
 				object.forces[2] += force_magnitude * force_direction[2];
@@ -170,27 +215,73 @@ var calculate_new_position = function(object, delta_t){
 //////////////// UI HELPERS ////////////////////
 ///////////////////////////////////////////////
 
+
 var add_planet = function(){
 	var sphere1 = make_sphere(.3, [0.0,0.0,5.0], 8.0, 16.0, .7, [0.0,0.0,5.0]);
 	scene_objects.push(sphere1);
 	assign_objects();
 }
 
-//rotate camera around origin theta degrees up from starting point, and fe degrees left from starting point
+
+
+//rotate camera around origin theta degrees down from starting point, and fe degrees left from starting point
 var update_view = function(theta, fe){
-	let r =  distanct(camera_location, cam_look_at);
-	let current_fe = find_fe(camera_look_at, camera_location);
-	let current_theta = find_theta(camera_look_at, camera_location);
+	let r = distance(cam_location, cam_look_at);
+	let current_fe = find_fe(cam_look_at, cam_location);
+	let current_theta = find_theta(cam_look_at, cam_location);
 
 	let new_theta = current_theta + theta;
 	let new_fe = current_fe + fe;
-	let new_direction = unit_from_theta_fe(theta, fe);
-	let cam_location = v_add(cam_v_mul(new_direction, r), cam_location);
-
+	if(new_theta > Math.PI){
+		new_theta = current_theta
+		new_fe = current_fe
+	}
+	let new_direction = unit_from_theta_fe(new_theta, new_fe);
+	cam_location = v_mul(new_direction, r);
 	mat4.lookAt(view_matrix, cam_location, cam_look_at, [0,1,0]);
 	gl.uniformMatrix4fv(view_uniform_location, gl.FALSE, view_matrix);
 }
 
+function mousedown(event) {
+	if(mousedownID==-1)  //Prevent multimple loops!
+		mousedownID = 1;
+		original_x = event.clientX; 
+		original_y = event.clientY;
+		last_x_position = original_x;
+		last_y_position = original_y;
+		canvas.addEventListener("mousemove", drag);
+}
+function mouseup(event) {
+	console.log("??");
+	if(mousedownID!=-1) {  //Only stop if exists
+		clearInterval(mousedownID);
+		mousedownID=-1;
+		console.log("here");
+		canvas.removeEventListener("mousemove", drag)
+	}
+
+}
+
+function drag() {
+   let x = event.clientX; 
+   let y = event.clientY;
+
+   if(original_x < x & !(last_x_position < x) || original_x > x & !(last_x_position > x)){
+   		original_x = last_x_position;
+   }
+   if(original_y < y & !(last_x_position < y) || original_y > y & !(last_y_position > y)){
+   		original_y = last_y_position;
+   }
+   let x_dis = original_x - x; // left right
+   let y_dis = original_y - y; // top bottom
+
+   let fe = (x_dis / canvas.clientWidth)*FOV;
+   let theta = (y_dis / canvas.clientHeight)*FOV;
+   update_view(theta, fe);
+
+   last_x_position = x;
+   last_y_position = y
+}
 //////////////////////////////////////////////
 //////////// WEBGL BASE //////////////////////
 /////////////////////////////////////////////
@@ -240,7 +331,6 @@ var runtime_loop = function() {
 	});
 
 	var loop = function() {
-
 		gl.clearColor(0.0, 0.0, 0.0, 1.0);
 		gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
 
@@ -275,7 +365,7 @@ var runtime_loop = function() {
 
 var InitDemo = function(){
 
-	var canvas = document.getElementById('render_canvas');
+	canvas = document.getElementById('render_canvas');
 	gl = canvas.getContext('webgl');
 
 	if (!gl){
@@ -357,9 +447,11 @@ var InitDemo = function(){
 
 	mat4.identity(world_matrix);
 
-	cam_location = [0,5,-5];
-	cam_look_at = [0,0,0];
-	mat4.lookAt(view_matrix, cam_location, cam_look_at, [0,1,0]); // camera: location, position looking at, direction, that it up
+	cam_location = [0.0,0.0,-5.0];
+	cam_look_at = [0.0,0.0,0.0];
+	camera_up = [0,1,0]
+	FOV = glMatrix.toRadian(90)
+	mat4.lookAt(view_matrix, cam_location, cam_look_at, camera_up); // camera: location, position looking at, direction, that it up
 
 	mat4.perspective(projection_matrix, glMatrix.toRadian(90), canvas.clientWidth/canvas.clientHeight, 0.1, 1000.0); // fov in rad, aspect ratio width/height, near plane and far plane; 
 
@@ -375,3 +467,12 @@ var InitDemo = function(){
 	runtime_loop();
 
 };
+
+///////////////////////////////
+/// EVENT HANDLERS ///////////
+/////////////////////////////
+var can = document.getElementById("render_canvas");
+can.addEventListener("mousedown", mousedown);
+can.addEventListener("mouseup", mouseup);
+//Also clear the interval when user leaves the window with mouse
+can.addEventListener("mouseout", mouseup);
