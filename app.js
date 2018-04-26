@@ -232,9 +232,8 @@ var update_view = function(theta, fe){
 
 	let new_theta = current_theta + theta;
 	let new_fe = current_fe + fe;
-	if(new_theta > Math.PI){
+	if(new_theta > Math.PI || new_theta < .05){
 		new_theta = current_theta
-		new_fe = current_fe
 	}
 	let new_direction = unit_from_theta_fe(new_theta, new_fe);
 	cam_location = v_mul(new_direction, r);
@@ -275,8 +274,8 @@ function drag() {
    let x_dis = original_x - x; // left right
    let y_dis = original_y - y; // top bottom
 
-   let fe = (x_dis / canvas.clientWidth)*FOV;
-   let theta = (y_dis / canvas.clientHeight)*FOV;
+   let fe = (x_dis / canvas.clientWidth)*FOV*.25;
+   let theta = (y_dis / canvas.clientHeight)*FOV*.25;
    update_view(theta, fe);
 
    last_x_position = x;
