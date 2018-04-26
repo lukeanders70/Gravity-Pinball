@@ -89,7 +89,8 @@ var make_sphere = function(r, center, num_lat, num_lon, mass, last_position){
 					center:center, 
 					num_vertices:num_vertices,
 					mass:mass,
-					last_position:last_position
+					last_position:last_position,
+					new_center:center
 				};
 	return object;
 };
@@ -133,9 +134,9 @@ var calculate_forces = function(object, objects){
 				object.forces[2] += force_magnitude * force_direction[2];
 			}
 			else{
-				object.forces[0] += force_magnitude * -1*force_direction[0];
-				object.forces[1] += force_magnitude * -1*force_direction[1];
-				object.forces[2] += force_magnitude * -1*force_direction[2];
+				object.forces[0] += force_magnitude * -0.5*force_direction[0];
+				object.forces[1] += force_magnitude * -0.5*force_direction[1];
+				object.forces[2] += force_magnitude * -0.5*force_direction[2];
 			}
 
 		}
@@ -211,7 +212,7 @@ var runtime_loop = function() {
 			let object = scene_objects[object_ind];
 			calculate_forces(object, scene_objects);
 			let old_center = object.center;
-			object.center = calculate_new_position(object, .1);
+			object.new_center = calculate_new_position(object, .1);
 			object.last_position = old_center;
 
 			//			      input         original matrix  vector to translate by
@@ -220,6 +221,9 @@ var runtime_loop = function() {
 
 			gl.drawArrays(gl.TRIANGLES, vertices_so_far , object.num_vertices);
 			vertices_so_far += object.num_vertices;
+		}
+		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
+			scene_objects[object_ind].center = scene_objects[object_ind].new_center;
 		}
 
 		if(!stop){
@@ -314,7 +318,7 @@ var InitDemo = function(){
 	view_matrix = new Float32Array(16);
 	projection_matrix = new Float32Array(16);
 	mat4.identity(world_matrix);
-	mat4.lookAt(view_matrix, [0,5,-5], [0,0,0], [0,0,1]); // camera: location, position looking at, direction, that it up
+	mat4.lookAt(view_matrix, [0,5,-5], [0,0,0], [0,1,0]); // camera: location, position looking at, direction, that it up
 	mat4.perspective(projection_matrix, glMatrix.toRadian(90), canvas.clientWidth/canvas.clientHeight, 0.1, 1000.0); // fov in rad, aspect ratio width/height, near plane and far plane; 
 
 	//sending to shader
