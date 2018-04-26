@@ -1,4 +1,4 @@
-var make_sphere = function(r, center, triangleVertices, num_lat, num_lon, mass, last_position){
+var make_sphere = function(r, center, num_lat, num_lon, mass, last_position){
 	var num_vertices = 0
 
 	for (let lat = 1.0; lat <= num_lat + 1.0; ++lat) {
@@ -148,15 +148,94 @@ var calculate_new_position = function(object, delta_t){
 	if(object.mass != 0.0){
 		acceleration = v_div(object.forces, object.mass);
 	}
-	console.log(velocity, object.forces);
 	return v_add(v_add(object.center, velocity), v_mul(acceleration, delta_t*delta_t));
 };
 
+var add_planet = function(){
+	var sphere1 = make_sphere(.3, [0.0,0.0,5.0], 8.0, 16.0, .7, [0.0,0.0,5.0]);
+	scene_objects.push(sphere1);
+	assign_objects();
+}
+
+var assign_objects = function(){
+	var traingleVertexBufferObject = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, traingleVertexBufferObject);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.STATIC_DRAW);
+
+	var positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
+	var colorAttribLocation = gl.getAttribLocation(program, 'vertColor');
+
+	gl.vertexAttribPointer(
+		positionAttribLocation, //Attribute location
+		3, //number of elements per attribute
+		gl.FLOAT, //type of elements
+		gl.FALSE, //no idea what this does
+		6 * Float32Array.BYTES_PER_ELEMENT, //Size of an individual vertex
+		0 // Offset from the beginning of a Math.single vertex to this attribute 
+	);
+
+	gl.vertexAttribPointer(
+		colorAttribLocation, //Attribute location
+		3, //number of elements per attribute
+		gl.FLOAT, //type of elements
+		gl.FALSE, //no idea what this does
+		6 * Float32Array.BYTES_PER_ELEMENT, //Size of an individual vertex
+		3 * Float32Array.BYTES_PER_ELEMENT // Offset from the beginning of a Math.single vertex to this attribute 
+	);
+
+	gl.enableVertexAttribArray(positionAttribLocation);
+	gl.enableVertexAttribArray(colorAttribLocation);
+}
+
+var runtime_loop = function() {
+
+	var identity_matrix = new Float32Array(16);
+	mat4.identity(identity_matrix);
+	gl.enable(gl.DEPTH_TEST);
+	var stop = false;
+
+	// if we restart the demo, the old loop will keep running and our simulation will go twice as fast
+	// in order to combat this, we add this variable which stops the current simulation
+	document.getElementById("restart_button").addEventListener("click", function(){
+		stop = true;
+		console.log("false")
+	});
+
+	var loop = function() {
+
+		gl.clearColor(0.0, 0.0, 0.0, 1.0);
+		gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+
+		var vertices_so_far = 0
+		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
+			let object = scene_objects[object_ind];
+			calculate_forces(object, scene_objects);
+			let old_center = object.center;
+			object.center = calculate_new_position(object, .1);
+			object.last_position = old_center;
+
+			//			      input         original matrix  vector to translate by
+			mat4.translate(world_matrix, identity_matrix, object.center);
+			gl.uniformMatrix4fv(world_uniform_location, gl.FALSE, world_matrix);
+
+			gl.drawArrays(gl.TRIANGLES, vertices_so_far , object.num_vertices);
+			vertices_so_far += object.num_vertices;
+		}
+
+		if(!stop){
+			requestAnimationFrame(loop);
+		}
+	};
+
+	if(!stop){
+		requestAnimationFrame(loop);
+	}
+}
 
 var InitDemo = function(){
 
 	var canvas = document.getElementById('render_canvas');
-	var gl = canvas.getContext('webgl');
+	gl = canvas.getContext('webgl');
 
 	if (!gl){
 		console.log("Your browser does not support WebGL");
@@ -189,7 +268,7 @@ var InitDemo = function(){
 		return;
 	}
 
-	var program = gl.createProgram();
+	program = gl.createProgram();
 	gl.attachShader(program, vertexShader);
 	gl.attachShader(program, fragmentShader);
 	gl.linkProgram(program)
@@ -206,73 +285,34 @@ var InitDemo = function(){
 	//
 	// create buffer
 	//
-	var triangleVertices = [];
-	var scene_objects = [];
 
-	var sphere1 = make_sphere(.5, [0.5,0.0,0.0], triangleVertices, 8.0, 16.0, .7, [0.5,0.0,0.0]);
+	triangleVertices = []; // these will be global
+	scene_objects = []; // these will be global
+	stop = true;
+
+	var sphere1 = make_sphere(.5, [0.5,0.0,0.0], 8.0, 16.0, .7, [0.5,0.0,0.0]);
 	scene_objects.push(sphere1);
 
-	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], triangleVertices, 8.0, 8.0, .05, [-1.5,0.0,.06]);
+	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.06]);
 	scene_objects.push(sphere2);
 
-	var sphere2 = make_sphere(.15, [3.5,0.0,0.0], triangleVertices, 8.0, 8.0, .02, [3.5,0.0,-.04]);
+	var sphere2 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
 	scene_objects.push(sphere2);
 
-
-
-
-/*	var triangleVertices = 
-	[ // X  ,  Y  ,  Z     R,   G,   B
-		 0.0,  0.5, 0.0,   1.0, 1.0, 0.0,
-		-0.5, -0.5, 0.0,   0.7, 0.0, 1.0,
-		 0.5, -0.5, 0.0,   0.0, 0.7, 1.0,
-
-		-0.7,  0.2, 0.0,   1.0, 1.0, 0.0,
-		-0.9, -0.2, 0.0,   0.7, 0.0, 1.0,
-		-0.5, -0.2, 0.0,   0.0, 0.7, 1.0 
-	];*/
-
-	var traingleVertexBufferObject = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, traingleVertexBufferObject);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.STATIC_DRAW);
-
-	var positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
-	var colorAttribLocation = gl.getAttribLocation(program, 'vertColor');
-
-	gl.vertexAttribPointer(
-		positionAttribLocation, //Attribute location
-		3, //number of elements per attribute
-		gl.FLOAT, //type of elements
-		gl.FALSE, //no idea what this does
-		6 * Float32Array.BYTES_PER_ELEMENT, //Size of an individual vertex
-		0 // Offset from the beginning of a Math.single vertex to this attribute 
-	);
-
-	gl.vertexAttribPointer(
-		colorAttribLocation, //Attribute location
-		3, //number of elements per attribute
-		gl.FLOAT, //type of elements
-		gl.FALSE, //no idea what this does
-		6 * Float32Array.BYTES_PER_ELEMENT, //Size of an individual vertex
-		3 * Float32Array.BYTES_PER_ELEMENT // Offset from the beginning of a Math.single vertex to this attribute 
-	);
-
-	gl.enableVertexAttribArray(positionAttribLocation);
-	gl.enableVertexAttribArray(colorAttribLocation);
-
+	assign_objects();
 	// tell open GL what program we're uMath.sing
 	gl.useProgram(program);
 
 
 	//creating pointers
-	var world_uniform_location = gl.getUniformLocation(program, 'world_matrix_render');
-	var view_uniform_location = gl.getUniformLocation(program, 'view_matrix_render');
-	var projection_uniform_location = gl.getUniformLocation(program, 'projection_matrix_render');
+	world_uniform_location = gl.getUniformLocation(program, 'world_matrix_render');
+	view_uniform_location = gl.getUniformLocation(program, 'view_matrix_render');
+	projection_uniform_location = gl.getUniformLocation(program, 'projection_matrix_render');
 
 	//setting the values in the CPU of matrices
-	var world_matrix = new Float32Array(16);
-	var view_matrix = new Float32Array(16);
-	var projection_matrix = new Float32Array(16);
+	world_matrix = new Float32Array(16);
+	view_matrix = new Float32Array(16);
+	projection_matrix = new Float32Array(16);
 	mat4.identity(world_matrix);
 	mat4.lookAt(view_matrix, [0,5,-5], [0,0,0], [0,0,1]); // camera: location, position looking at, direction, that it up
 	mat4.perspective(projection_matrix, glMatrix.toRadian(90), canvas.clientWidth/canvas.clientHeight, 0.1, 1000.0); // fov in rad, aspect ratio width/height, near plane and far plane; 
@@ -285,39 +325,7 @@ var InitDemo = function(){
 	//
 	// Main render loop
 	//
-
-	var identity_matrix = new Float32Array(16);
-	mat4.identity(identity_matrix);
-	var angle = 0;
-	gl.enable(gl.DEPTH_TEST);
-
-	var loop = function() {
-
-		gl.clearColor(0.0, 0.0, 0.0, 1.0);
-		gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
-
-		//		mil Math.since start   to secs     one full rotation per six seconds 
-		angle = performance.now() / 1000     / 6 * 2 * Math.PI;
-
-		var vertices_so_far = 0
-		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
-			let object = scene_objects[object_ind];
-			calculate_forces(object, scene_objects);
-			let old_center = object.center;
-			object.center = calculate_new_position(object, .1);
-			object.last_position = old_center;
-
-			//			   input         original matrix  vector to translate by
-			mat4.translate(world_matrix, identity_matrix, object.center);
-			gl.uniformMatrix4fv(world_uniform_location, gl.FALSE, world_matrix);
-
-			gl.drawArrays(gl.TRIANGLES, vertices_so_far , object.num_vertices);
-			vertices_so_far += object.num_vertices;
-		}
-
-		requestAnimationFrame(loop)
-	};
-	//this will run the loop every time the screen is ready to refresh
-	requestAnimationFrame(loop);
+	stop = false;
+	runtime_loop();
 
 };
