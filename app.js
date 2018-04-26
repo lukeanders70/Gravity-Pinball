@@ -95,6 +95,11 @@ var make_sphere = function(r, center, num_lat, num_lon, mass, last_position){
 	return object;
 };
 
+
+////////////////////////////////////////////////////
+//////////// ALGEBRA HELPERS //////////////////////
+//////////////////////////////////////////////////
+
 var v_add = function(v1, v2){
 	return [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]];
 };
@@ -119,6 +124,14 @@ var distanct = function(v1, v2){
 var direction = function(v1, v2){
 	return v_div(v_sub(v2,v1),distanct(v2, v1))
 }
+
+var v_angle = function(){
+
+};
+
+/////////////////////////////////////////////////
+//////// PHYSICS SIMULATION ////////////////////
+///////////////////////////////////////////////
 
 var calculate_forces = function(object, objects){
 	object.forces = [0.0,0.0,0.0];
@@ -152,11 +165,35 @@ var calculate_new_position = function(object, delta_t){
 	return v_add(v_add(object.center, velocity), v_mul(acceleration, delta_t*delta_t));
 };
 
+
+/////////////////////////////////////////////////
+//////////////// UI HELPERS ////////////////////
+///////////////////////////////////////////////
+
 var add_planet = function(){
 	var sphere1 = make_sphere(.3, [0.0,0.0,5.0], 8.0, 16.0, .7, [0.0,0.0,5.0]);
 	scene_objects.push(sphere1);
 	assign_objects();
 }
+
+//rotate camera around origin theta degrees up from starting point, and fe degrees left from starting point
+var update_view = function(theta, fe){
+	let r =  distanct(camera_location, cam_look_at);
+	let current_fe = find_fe(camera_look_at, camera_location);
+	let current_theta = find_theta(camera_look_at, camera_location);
+
+	let new_theta = current_theta + theta;
+	let new_fe = current_fe + fe;
+	let new_direction = unit_from_theta_fe(theta, fe);
+	let cam_location = v_add(cam_v_mul(new_direction, r), cam_location);
+
+	mat4.lookAt(view_matrix, cam_location, cam_look_at, [0,1,0]);
+	gl.uniformMatrix4fv(view_uniform_location, gl.FALSE, view_matrix);
+}
+
+//////////////////////////////////////////////
+//////////// WEBGL BASE //////////////////////
+/////////////////////////////////////////////
 
 var assign_objects = function(){
 	var traingleVertexBufferObject = gl.createBuffer();
@@ -234,12 +271,6 @@ var runtime_loop = function() {
 	if(!stop){
 		requestAnimationFrame(loop);
 	}
-}
-
-var update_view = function(change_vector){
-	cam_location = v_add(cam_location, change_vector)
-	mat4.lookAt(view_matrix, cam_location, cam_look_at, [0,1,0]); 
-	gl.uniformMatrix4fv(view_uniform_location, gl.FALSE, view_matrix);
 }
 
 var InitDemo = function(){
