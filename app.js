@@ -236,6 +236,12 @@ var runtime_loop = function() {
 	}
 }
 
+var update_view = function(change_vector){
+	cam_location = v_add(cam_location, change_vector)
+	mat4.lookAt(view_matrix, cam_location, cam_look_at, [0,1,0]); 
+	gl.uniformMatrix4fv(view_uniform_location, gl.FALSE, view_matrix);
+}
+
 var InitDemo = function(){
 
 	var canvas = document.getElementById('render_canvas');
@@ -317,8 +323,13 @@ var InitDemo = function(){
 	world_matrix = new Float32Array(16);
 	view_matrix = new Float32Array(16);
 	projection_matrix = new Float32Array(16);
+
 	mat4.identity(world_matrix);
-	mat4.lookAt(view_matrix, [0,5,-5], [0,0,0], [0,1,0]); // camera: location, position looking at, direction, that it up
+
+	cam_location = [0,5,-5];
+	cam_look_at = [0,0,0];
+	mat4.lookAt(view_matrix, cam_location, cam_look_at, [0,1,0]); // camera: location, position looking at, direction, that it up
+
 	mat4.perspective(projection_matrix, glMatrix.toRadian(90), canvas.clientWidth/canvas.clientHeight, 0.1, 1000.0); // fov in rad, aspect ratio width/height, near plane and far plane; 
 
 	//sending to shader
