@@ -217,7 +217,9 @@ var calculate_new_position = function(object, delta_t){
 
 
 var add_planet = function(){
-	var sphere1 = make_sphere(.3, cam_location, 8.0, 16.0, .7, cam_location); //r, center, num_lat, num_lon, mass, last_position
+	let direction = v_div(v_sub(cam_location,cam_look_at) , distance(cam_location,cam_look_at) );
+	console.log(direction);
+	var sphere1 = make_sphere(.3, cam_location, 8.0, 16.0, .7, v_add(cam_location, v_mul(direction, .03))); //r, center, num_lat, num_lon, mass, last_position
 	scene_objects.push(sphere1);
 	assign_objects();
 }
@@ -236,7 +238,7 @@ var update_view = function(theta, fe){
 		new_theta = current_theta
 	}
 	let new_direction = unit_from_theta_fe(new_theta, new_fe);
-	cam_location = v_mul(new_direction, r);
+	cam_location = v_add(cam_look_at, v_mul(new_direction, r));
 	mat4.lookAt(view_matrix, cam_location, cam_look_at, [0,1,0]);
 	gl.uniformMatrix4fv(view_uniform_location, gl.FALSE, view_matrix);
 }
@@ -251,11 +253,9 @@ function mousedown(event) {
 		canvas.addEventListener("mousemove", drag);
 }
 function mouseup(event) {
-	console.log("??");
 	if(mousedownID!=-1) {  //Only stop if exists
 		clearInterval(mousedownID);
 		mousedownID=-1;
-		console.log("here");
 		canvas.removeEventListener("mousemove", drag)
 	}
 
@@ -280,6 +280,10 @@ function drag() {
 
    last_x_position = x;
    last_y_position = y
+}
+
+function pan() {
+	
 }
 //////////////////////////////////////////////
 //////////// WEBGL BASE //////////////////////
