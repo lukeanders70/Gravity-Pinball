@@ -217,7 +217,7 @@ var calculate_new_position = function(object, delta_t){
 
 
 var add_planet = function(){
-	var sphere1 = make_sphere(.3, [0.0,0.0,5.0], 8.0, 16.0, .7, [0.0,0.0,5.0]);
+	var sphere1 = make_sphere(.3, cam_location, 8.0, 16.0, .7, cam_location); //r, center, num_lat, num_lon, mass, last_position
 	scene_objects.push(sphere1);
 	assign_objects();
 }
@@ -268,7 +268,7 @@ function drag() {
    if(original_x < x & !(last_x_position < x) || original_x > x & !(last_x_position > x)){
    		original_x = last_x_position;
    }
-   if(original_y < y & !(last_x_position < y) || original_y > y & !(last_y_position > y)){
+   if(original_y < y & !(last_y_position < y) || original_y > y & !(last_y_position > y)){
    		original_y = last_y_position;
    }
    let x_dis = original_x - x; // left right
