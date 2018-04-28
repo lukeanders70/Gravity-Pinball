@@ -1,4 +1,5 @@
 var mousedownID = -1;  //indicates if mouse is down
+var angle_or_pan = 1; //indicates dragging will angle camera instead of pan
 
 var make_sphere = function(r, center, num_lat, num_lon, mass, last_position){
 	var num_vertices = 0
@@ -101,6 +102,20 @@ var make_sphere = function(r, center, num_lat, num_lon, mass, last_position){
 ////////////////////////////////////////////////////
 //////////// ALGEBRA HELPERS //////////////////////
 //////////////////////////////////////////////////
+
+var cross = function(out, a, b) {
+  var ax = a[0],
+      ay = a[1],
+      az = a[2];
+  var bx = b[0],
+      by = b[1],
+      bz = b[2];
+
+  out[0] = ay * bz - az * by;
+  out[1] = az * bx - ax * bz;
+  out[2] = ax * by - ay * bx;
+  return out;
+}
 
 var v_add = function(v1, v2){
 	return [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]];
@@ -214,7 +229,13 @@ var calculate_new_position = function(object, delta_t){
 /////////////////////////////////////////////////
 //////////////// UI HELPERS ////////////////////
 ///////////////////////////////////////////////
+var switch_to_pan = function(){
+	angle_or_pan = -1;
+}
 
+var switch_to_angle = function(){
+	angle_or_pan = 1;
+}
 
 var add_planet = function(){
 	let direction = v_div(v_sub(cam_location,cam_look_at) , distance(cam_location,cam_look_at) );
@@ -227,8 +248,7 @@ var add_planet = function(){
 
 
 //rotate camera around origin theta degrees down from starting point, and fe degrees left from starting point
-var update_view = function(theta, fe){
-	let r = distance(cam_location, cam_look_at);
+var update_view_angle = function(theta, fe){
 	let current_fe = find_fe(cam_look_at, cam_location);
 	let current_theta = find_theta(cam_look_at, cam_location);
 
@@ -238,8 +258,9 @@ var update_view = function(theta, fe){
 		new_theta = current_theta
 	}
 	let new_direction = unit_from_theta_fe(new_theta, new_fe);
-	cam_location = v_add(cam_look_at, v_mul(new_direction, r));
-	mat4.lookAt(view_matrix, cam_location, cam_look_at, [0,1,0]);
+	cam_location = v_add(cam_look_at, v_mul(new_direction, cam_radius));
+	camera_up = unit_from_theta_fe((Math.PI / 2.0) - new_theta, Math.PI + new_fe);
+	mat4.lookAt(view_matrix, cam_location, cam_look_at, camera_up);
 	gl.uniformMatrix4fv(view_uniform_location, gl.FALSE, view_matrix);
 }
 
@@ -250,18 +271,26 @@ function mousedown(event) {
 		original_y = event.clientY;
 		last_x_position = original_x;
 		last_y_position = original_y;
-		canvas.addEventListener("mousemove", drag);
+		if(angle_or_pan == 1){
+			canvas.addEventListener("mousemove", drag_angle);
+		}else{
+			canvas.addEventListener("mousemove", drag_pan);
+		}
 }
 function mouseup(event) {
 	if(mousedownID!=-1) {  //Only stop if exists
 		clearInterval(mousedownID);
 		mousedownID=-1;
-		canvas.removeEventListener("mousemove", drag)
+		if(angle_or_pan == 1){
+			canvas.removeEventListener("mousemove", drag_angle);
+		}else{
+			canvas.removeEventListener("mousemove", drag_pan);	
+		}
 	}
 
 }
 
-function drag() {
+function drag_angle() {
    let x = event.clientX; 
    let y = event.clientY;
 
@@ -276,14 +305,51 @@ function drag() {
 
    let fe = (x_dis / canvas.clientWidth)*FOV*.25;
    let theta = (y_dis / canvas.clientHeight)*FOV*.25;
-   update_view(theta, fe);
+   update_view_angle(theta, fe);
 
    last_x_position = x;
    last_y_position = y
 }
 
-function pan() {
-	
+function drag_pan(){
+   let x = event.clientX; 
+   let y = event.clientY;
+
+   if(original_x < x & !(last_x_position < x) || original_x > x & !(last_x_position > x)){
+   		original_x = last_x_position;
+   }
+   if(original_y < y & !(last_y_position < y) || original_y > y & !(last_y_position > y)){
+   		original_y = last_y_position;
+   }
+   let x_dis = original_x - x; // left right
+   let y_dis = original_y - y; // top bottom
+
+   var left_right_dir = [0.0,0.0,0.0];
+   cross(left_right_dir, camera_up, v_sub(cam_look_at, cam_location));
+   console.log(camera_up, cam_location, left_right_dir);
+   left_right_dir = v_div(left_right_dir, distance([0.0,0.0,0.0], left_right_dir))
+   var up_down_dir = v_div(camera_up, distance([0.0,0.0,0.0], camera_up));
+
+   var direction_to_move = v_add(v_mul(left_right_dir, (x_dis/ canvas.clientWidth)),v_mul(up_down_dir, (y_dis/canvas.clientHeight))); 
+   update_view_pan(direction_to_move[0], direction_to_move[1], direction_to_move[2]);
+}
+
+function forward(){
+	let forward_direction = v_sub(cam_look_at, cam_location);
+	forward_direction = v_div(forward_direction, distance(forward_direction, [0.0,0.0,0.0]));
+	update_view_pan(forward_direction[0], forward_direction[1], forward_direction[2])
+}
+
+function update_view_pan(x, y, z) {
+	cam_look_at = v_add(cam_look_at, [x,y,z]);
+
+	let current_fe = find_fe(cam_look_at, cam_location);
+	let current_theta = find_theta(cam_look_at, cam_location);
+
+	let direction = unit_from_theta_fe(current_theta, current_fe);
+	cam_location = v_add(cam_look_at, v_mul(direction, cam_radius));
+	mat4.lookAt(view_matrix, cam_location, cam_look_at, camera_up);
+	gl.uniformMatrix4fv(view_uniform_location, gl.FALSE, view_matrix);
 }
 //////////////////////////////////////////////
 //////////// WEBGL BASE //////////////////////
@@ -424,7 +490,7 @@ var InitDemo = function(){
 	scene_objects = []; // these will be global
 	stop = true;
 
-	var sphere1 = make_sphere(.5, [0.5,0.0,0.0], 8.0, 16.0, .7, [0.5,0.0,0.0]);
+	var sphere1 = make_sphere(.5, [0.0,0.0,0.0], 8.0, 16.0, .7, [0.0,0.0,0.0]);
 	scene_objects.push(sphere1);
 
 	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.06]);
@@ -453,6 +519,7 @@ var InitDemo = function(){
 	cam_location = [0.0,0.0,-5.0];
 	cam_look_at = [0.0,0.0,0.0];
 	camera_up = [0,1,0]
+	cam_radius = distance(cam_location, cam_look_at);
 	FOV = glMatrix.toRadian(90)
 	mat4.lookAt(view_matrix, cam_location, cam_look_at, camera_up); // camera: location, position looking at, direction, that it up
 
