@@ -290,6 +290,30 @@ function mouseup(event) {
 
 }
 
+function keydown(event) {
+	console.log(event.keyCode);
+
+	if(event.keyCode == 37){ //left arrow
+		left(.03);
+	}
+	if(event.keyCode == 38){ //up arrow
+		up(.03);
+	}
+	if(event.keyCode == 39){ //right arrow
+		right(.03);
+	}
+	if(event.keyCode == 40){ //down arrow
+		down(.03);
+	}
+	if(event.keyCode == 87){ //w key
+		forward(.03);
+	}
+	if(event.keyCode == 83){ //s key
+		backward(.03);
+	}
+
+}
+
 function drag_angle() {
    let x = event.clientX; 
    let y = event.clientY;
@@ -334,12 +358,46 @@ function drag_pan(){
    update_view_pan(direction_to_move[0], direction_to_move[1], direction_to_move[2]);
 }
 
-function forward(){
+function forward(amount){
 	let forward_direction = v_sub(cam_look_at, cam_location);
 	forward_direction = v_div(forward_direction, distance(forward_direction, [0.0,0.0,0.0]));
-	update_view_pan(forward_direction[0], forward_direction[1], forward_direction[2])
+	update_view_pan(amount*forward_direction[0], amount*forward_direction[1], amount*forward_direction[2])
 }
 
+function backward(amount){
+	let forward_direction = v_sub(cam_look_at, cam_location);
+	forward_direction = v_div(forward_direction, distance(forward_direction, [0.0,0.0,0.0]));
+	update_view_pan(amount*-1.0* forward_direction[0], amount*-1.0*forward_direction[1], amount*-1.0*forward_direction[2])
+}
+
+function left(amount){
+   var left_right_dir = [0.0,0.0,0.0];
+   cross(left_right_dir, camera_up, v_sub(cam_look_at, cam_location));
+   left_right_dir = v_div(left_right_dir, distance([0.0,0.0,0.0], left_right_dir));
+   update_view_pan(amount*left_right_dir[0], amount*left_right_dir[1], amount*left_right_dir[2]);
+}
+
+function right(amount){
+   var left_right_dir = [0.0,0.0,0.0];
+   cross(left_right_dir, camera_up, v_sub(cam_look_at, cam_location));
+   left_right_dir = v_div(left_right_dir, distance([0.0,0.0,0.0], left_right_dir));
+   update_view_pan(amount*-1.0*left_right_dir[0], amount*-1.0*left_right_dir[1], amount*-1.0*left_right_dir[2]);
+
+}
+
+function up(amount){
+   var up_down_dir = camera_up;
+   up_down_dir = v_div(up_down_dir, distance([0.0,0.0,0.0], up_down_dir));
+   update_view_pan(amount*up_down_dir[0], amount*up_down_dir[1], amount*up_down_dir[2]);
+
+}
+
+function down(amount){
+   var up_down_dir = camera_up;
+   up_down_dir = v_div(up_down_dir, distance([0.0,0.0,0.0], up_down_dir));
+   update_view_pan(amount*-1.0*up_down_dir[0], amount*-1.0*up_down_dir[1], amount*-1.0*up_down_dir[2]);
+
+}
 function update_view_pan(x, y, z) {
 	cam_look_at = v_add(cam_look_at, [x,y,z]);
 
@@ -493,11 +551,11 @@ var InitDemo = function(){
 	var sphere1 = make_sphere(.5, [0.0,0.0,0.0], 8.0, 16.0, .7, [0.0,0.0,0.0]);
 	scene_objects.push(sphere1);
 
-	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.06]);
-	scene_objects.push(sphere2);
+	//var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.08]);
+	//scene_objects.push(sphere2);
 
-	var sphere2 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
-	scene_objects.push(sphere2);
+	//var sphere2 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
+	//scene_objects.push(sphere2);
 
 	assign_objects();
 	// tell open GL what program we're uMath.sing
@@ -546,3 +604,4 @@ can.addEventListener("mousedown", mousedown);
 can.addEventListener("mouseup", mouseup);
 //Also clear the interval when user leaves the window with mouse
 can.addEventListener("mouseout", mouseup);
+document.addEventListener('keydown', keydown);
