@@ -238,9 +238,9 @@ var switch_to_angle = function(){
 	angle_or_pan = 1;
 }
 
-var add_planet = function(){
+var add_planet = function(x_angle = 0, y_angle = 0){
 	let direction = v_div(v_sub(cam_location,cam_look_at) , distance(cam_location,cam_look_at) );
-	console.log(direction);
+	
 	var sphere1 = make_sphere(.3, cam_location, 8.0, 16.0, .7, v_add(cam_location, v_mul(direction, .05))); //r, center, num_lat, num_lon, mass, last_position
 	scene_objects.push(sphere1);
 	assign_objects();
@@ -283,6 +283,9 @@ function mousedown(event) {
 			let x = event.clientX; 
 			let y = event.clientY;
 			canvas.clientWidth
+			var x_angle = ((x/canvas.clientWidth) * FOV) - (FOV/2))
+			var y_angle = ((y/canvas.clientHeight) * FOV) - (FOV/2))
+			add_planet(x_angle, y_angle)
 		}
 }
 function mouseup(event) {
