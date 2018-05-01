@@ -1,5 +1,6 @@
 var mousedownID = -1;  //indicates if mouse is down
 var angle_or_pan = 1; //indicates dragging will angle camera instead of pan
+var angle_mode = true;
 
 var make_sphere = function(r, center, num_lat, num_lon, mass, last_position){
 	var num_vertices = 0
@@ -267,14 +268,21 @@ var update_view_angle = function(theta, fe){
 function mousedown(event) {
 	if(mousedownID==-1)  //Prevent multimple loops!
 		mousedownID = 1;
-		original_x = event.clientX; 
-		original_y = event.clientY;
-		last_x_position = original_x;
-		last_y_position = original_y;
-		if(angle_or_pan == 1){
-			canvas.addEventListener("mousemove", drag_angle);
-		}else{
-			canvas.addEventListener("mousemove", drag_pan);
+
+		if(angle_mode){ // we will angle our viewpoint
+			original_x = event.clientX; 
+			original_y = event.clientY;
+			last_x_position = original_x;
+			last_y_position = original_y;
+			if(angle_or_pan == 1){
+				canvas.addEventListener("mousemove", drag_angle);
+			}else{
+				canvas.addEventListener("mousemove", drag_pan);
+			}
+		} else{ //we will shoot a planet
+			let x = event.clientX; 
+			let y = event.clientY;
+			canvas.clientWidth
 		}
 }
 function mouseup(event) {
