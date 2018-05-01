@@ -321,16 +321,16 @@ function mousedown(event) {
 			last_x_position = original_x;
 			last_y_position = original_y;
 			if(angle_or_pan == 1){
-				canvas.addEventListener("mousemove", drag_angle);
+				canvas_div.addEventListener("mousemove", drag_angle);
 			}else{
-				canvas.addEventListener("mousemove", drag_pan);
+				canvas_div.addEventListener("mousemove", drag_pan);
 			}
 		} else{ //we will shoot a planet
 			mousedownID = 1;
 			mousedown_time = new Date();
 			mouse_x = event.clientX
 			mouse_y = event.clientY
-			canvas.addEventListener("mousemove", target_move);
+			canvas_div.addEventListener("mousemove", target_move);
 
 			var pointer = document.getElementById("fire_pointer");
 			pointer.style.left = mouse_x - 32 + "px";
@@ -353,9 +353,9 @@ function mouseup(event) {
 		mousedownID=-1;
 		if(angle_mode){
 			if(angle_or_pan == 1){
-				canvas.removeEventListener("mousemove", drag_angle);
+				canvas_div.removeEventListener("mousemove", drag_angle);
 			}else{
-				canvas.removeEventListener("mousemove", drag_pan);	
+				canvas_div.removeEventListener("mousemove", drag_pan);	
 			}
 		} else{
 			clearInterval(intervalTarget);
@@ -363,7 +363,7 @@ function mouseup(event) {
 			element.style.display = "None"
 			var element = document.getElementById("fire_pointer_small");
 			element.style.display = "None"
-			canvas.removeEventListener("mousemove", target_move);	
+			canvas_div.removeEventListener("mousemove", target_move);	
 
 			mouseup_time = new Date();
 			var power = (mouseup_time - mousedown_time) / 2000;
@@ -613,6 +613,7 @@ var runtime_loop = function() {
 var InitDemo = function(){
 
 	canvas = document.getElementById('render_canvas');
+	canvas_div = document.getElementById('canvas-div');
 	gl = canvas.getContext('webgl');
 
 	if (!gl){
@@ -668,14 +669,14 @@ var InitDemo = function(){
 	scene_objects = []; // these will be global
 	stop = true;
 
-	var sphere1 = make_sphere(.5, [0.0,0.0,0.0], 8.0, 16.0, .7, [0.0,0.0,0.0]);
+	var sphere1 = make_sphere(.5, [0.0,0.0,0.0], 4.0, 8.0, .7, [0.0,0.0,0.0]);
 	scene_objects.push(sphere1);
 
-	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.08]);
-	scene_objects.push(sphere2);
+	//var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.08]);
+	//scene_objects.push(sphere2);
 
-	var sphere2 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
-	scene_objects.push(sphere2);
+	//var sphere2 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
+	//scene_objects.push(sphere2);
 
 	assign_objects();
 	// tell open GL what program we're uMath.sing
@@ -719,7 +720,7 @@ var InitDemo = function(){
 ///////////////////////////////
 /// EVENT HANDLERS ///////////
 /////////////////////////////
-var can = document.getElementById("render_canvas");
+var can = document.getElementById("canvas-div");
 can.addEventListener("mousedown", mousedown);
 can.addEventListener("mouseup", mouseup);
 //Also clear the interval when user leaves the window with mouse
