@@ -255,6 +255,10 @@ var calculate_new_position = function(object, delta_t){
 	return v_add(v_add(object.center, velocity), v_mul(acceleration, delta_t*delta_t));
 };
 
+var ease = function(t){
+	return t * t * (3.0 - 2.0 * t);
+}
+
 
 /////////////////////////////////////////////////
 //////////////// UI HELPERS ////////////////////
@@ -271,19 +275,20 @@ var switch_add_or_move = function() {
 	angle_mode = !angle_mode;
 }
 
-var add_planet = function(x_angle = 0, y_angle = 0){ //rotate_around_axis(a, n)
+var add_planet = function(x_angle = 0, y_angle = 0, power = 0.05){ //rotate_around_axis(a, n)
+	if(power < 0.01) {
+		power = 0.01;
+	}
 	let direction = v_div(v_sub(cam_location,cam_look_at) , distance(cam_location,cam_look_at) );
 	var x_rotate_matrix = rotate_around_axis(x_angle, camera_up);
 	var camera_horizontal = vec3
 	cross(camera_horizontal, camera_up, direction)
-	console.log(y_angle)
 	var y_rotate_matrix = rotate_around_axis(y_angle, camera_horizontal);
-	console.log(y_rotate_matrix)
 
 	direction = mat_vec_mul(x_rotate_matrix, direction)
 	direction = mat_vec_mul(y_rotate_matrix, direction)
 
-	var sphere1 = make_sphere(.3, cam_location, 8.0, 16.0, .7, v_add(cam_location, v_mul(direction, .05))); //r, center, num_lat, num_lon, mass, last_position
+	var sphere1 = make_sphere(.3, cam_location, 8.0, 16.0, .7, v_add(cam_location, v_mul(direction, power))); //r, center, num_lat, num_lon, mass, last_position
 	scene_objects.push(sphere1);
 	assign_objects();
 }
@@ -320,22 +325,33 @@ function mousedown(event) {
 				canvas.addEventListener("mousemove", drag_pan);
 			}
 		} else{ //we will shoot a planet
-			let x = event.clientX; 
-			let y = event.clientY;
-			canvas.clientWidth
-			var x_angle = -((x/canvas.clientWidth) * FOV) - (FOV/2)
-			var y_angle = -((y/canvas.clientHeight) * FOV) - (FOV/2)
-			add_planet(x_angle, y_angle)
+			mousedown_time = new Date();
 		}
 }
 function mouseup(event) {
 	if(mousedownID!=-1) {  //Only stop if exists
 		clearInterval(mousedownID);
 		mousedownID=-1;
-		if(angle_or_pan == 1){
-			canvas.removeEventListener("mousemove", drag_angle);
-		}else{
-			canvas.removeEventListener("mousemove", drag_pan);	
+		if(angle_mode){
+			if(angle_or_pan == 1){
+				canvas.removeEventListener("mousemove", drag_angle);
+			}else{
+				canvas.removeEventListener("mousemove", drag_pan);	
+			}
+		} else{
+			mouseup_time = new Date();
+			var power = (mouseup_time - mousedown_time) / 2000;
+			if(power > 1) {
+				power = 1;
+			}
+			if(power < 0) {
+				power = 0;
+			}
+			let x = event.clientX; 
+			let y = event.clientY;
+			var x_angle = ((x/canvas.clientWidth) * FOV) - (FOV/2)
+			var y_angle = ((y/canvas.clientHeight) * FOV) - (FOV/2)
+			add_planet(-x_angle, -y_angle, ease(power) / 4);
 		}
 	}
 
