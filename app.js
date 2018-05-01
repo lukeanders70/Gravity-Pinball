@@ -267,6 +267,10 @@ var switch_to_angle = function(){
 	angle_or_pan = 1;
 }
 
+var switch_add_or_move = function() {
+	angle_mode = !angle_mode;
+}
+
 var add_planet = function(x_angle = 0, y_angle = 0){ //rotate_around_axis(a, n)
 	let direction = v_div(v_sub(cam_location,cam_look_at) , distance(cam_location,cam_look_at) );
 	var x_rotate_matrix = rotate_around_axis(x_angle, camera_up);
@@ -283,8 +287,6 @@ var add_planet = function(x_angle = 0, y_angle = 0){ //rotate_around_axis(a, n)
 	scene_objects.push(sphere1);
 	assign_objects();
 }
-
-
 
 //rotate camera around origin theta degrees down from starting point, and fe degrees left from starting point
 var update_view_angle = function(theta, fe){
