@@ -104,6 +104,10 @@ var make_sphere = function(r, center, num_lat, num_lon, mass, last_position){
 //////////// ALGEBRA HELPERS //////////////////////
 //////////////////////////////////////////////////
 
+var mat_vec_mul = function(m, v){
+	return([  v_dot([m[0], m[1], m[2]],v), v_dot([m[3], m[4], m[5]],v), v_dot([m[6], m[7], m[8]],v)  ])
+}
+
 var cross = function(out, a, b) {
   var ax = a[0],
       ay = a[1],
@@ -122,6 +126,18 @@ var v_add = function(v1, v2){
 	return [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]];
 };
 
+var v_add_nine = function(v1, v2, v3){
+	return [v1[0] + v2[0] + v3[0], 
+			v1[1] + v2[1] + v3[1], 
+			v1[2] + v2[2] + v3[2], 
+			v1[3] + v2[3] + v3[3], 
+			v1[4] + v2[4] + v3[4],
+			v1[5] + v2[5] + v3[5],
+			v1[6] + v2[6] + v3[6],
+			v1[7] + v2[7] + v3[7], 
+			v1[8] + v2[8] + v3[8]];
+}
+
 var v_sub = function(v1, v2){
 	return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]];
 }
@@ -131,7 +147,12 @@ var v_div = function(v, n){
 }
 
 var v_mul = function(v, n){
-	return [v[0]*n, v[1]*n, v[2]*n];
+	if(v.length == 3){
+		return [v[0]*n, v[1]*n, v[2]*n];
+	}
+	else{
+		return [v[0]*n, v[1]*n, v[2]*n, v[3]*n, v[4]*n, v[5]*n, v[6]*n, v[7]*n, v[8]*n];
+	}
 }
 
 function v_rotateY(out, a, b, c) {
@@ -194,8 +215,8 @@ var unit_from_theta_fe = function(theta, fe){
 	return ret;
 }
 
-var rotate_around_axis(a, n) {
-	return v_mul([1, 0, 0, 0, 1, 0, 0, 0, 1], Math.cos(a)) + v_mul(v_outer(n, n), (1.0 - Math.cos(a))) + v_mul([0, -n[2], n[1], n[2], 0, -n[0], -n[1], n[0], 0], 1 - Math.sin(a));
+var rotate_around_axis = function(a, n) {
+	return v_add_nine(v_mul([1, 0, 0, 0, 1, 0, 0, 0, 1], Math.cos(a)), v_mul(v_outer(n, n), (1.0 - Math.cos(a))), v_mul([0, -n[2], n[1], n[2], 0, -n[0], -n[1], n[0], 0], 1 - Math.sin(a)));
 }
 
 /////////////////////////////////////////////////
@@ -246,9 +267,18 @@ var switch_to_angle = function(){
 	angle_or_pan = 1;
 }
 
-var add_planet = function(x_angle = 0, y_angle = 0){
+var add_planet = function(x_angle = 0, y_angle = 0){ //rotate_around_axis(a, n)
 	let direction = v_div(v_sub(cam_location,cam_look_at) , distance(cam_location,cam_look_at) );
-	
+	var x_rotate_matrix = rotate_around_axis(x_angle, camera_up);
+	var camera_horizontal = vec3
+	cross(camera_horizontal, camera_up, direction)
+	console.log(y_angle)
+	var y_rotate_matrix = rotate_around_axis(y_angle, camera_horizontal);
+	console.log(y_rotate_matrix)
+
+	direction = mat_vec_mul(x_rotate_matrix, direction)
+	direction = mat_vec_mul(y_rotate_matrix, direction)
+
 	var sphere1 = make_sphere(.3, cam_location, 8.0, 16.0, .7, v_add(cam_location, v_mul(direction, .05))); //r, center, num_lat, num_lon, mass, last_position
 	scene_objects.push(sphere1);
 	assign_objects();
@@ -291,8 +321,8 @@ function mousedown(event) {
 			let x = event.clientX; 
 			let y = event.clientY;
 			canvas.clientWidth
-			var x_angle = ((x/canvas.clientWidth) * FOV) - (FOV/2))
-			var y_angle = ((y/canvas.clientHeight) * FOV) - (FOV/2))
+			var x_angle = ((x/canvas.clientWidth) * FOV) - (FOV/2)
+			var y_angle = ((y/canvas.clientHeight) * FOV) - (FOV/2)
 			add_planet(x_angle, y_angle)
 		}
 }
@@ -310,7 +340,6 @@ function mouseup(event) {
 }
 
 function keydown(event) {
-	console.log(event.keyCode);
 
 	if(event.keyCode == 37){ //left arrow
 		left(.03);
@@ -369,7 +398,6 @@ function drag_pan(){
 
    var left_right_dir = [0.0,0.0,0.0];
    cross(left_right_dir, camera_up, v_sub(cam_look_at, cam_location));
-   console.log(camera_up, cam_location, left_right_dir);
    left_right_dir = v_div(left_right_dir, distance([0.0,0.0,0.0], left_right_dir))
    var up_down_dir = v_div(camera_up, distance([0.0,0.0,0.0], camera_up));
 
