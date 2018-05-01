@@ -702,7 +702,7 @@ var InitDemo = function(){
 
 	mat4.identity(world_matrix);
 
-	cam_location = [0.0,0.0,-5.0];
+	cam_location = [0.0,5.0,-5.0];
 	cam_look_at = [0.0,0.0,0.0];
 	camera_up = [0,1,0]
 	cam_radius = distance(cam_location, cam_look_at);
