@@ -10,7 +10,7 @@
 #fire_pointer_small{
 	width: 1px;
 	height: 1px;
-	border-radius: 0px;
+	border-radius: 32px;
 	position: absolute;
 	display: none;
 	background-color: white;

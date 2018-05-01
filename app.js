@@ -326,25 +326,28 @@ function mousedown(event) {
 				canvas.addEventListener("mousemove", drag_pan);
 			}
 		} else{ //we will shoot a planet
-			console.log("down")
 			mousedownID = 1;
 			mousedown_time = new Date();
+			mouse_x = event.clientX
+			mouse_y = event.clientY
+			canvas.addEventListener("mousemove", target_move);
 
-			var element = document.getElementById("fire_pointer");
-			element.style.left = event.clientX - 30 + "px";
-			element.style.top = event.clientY -30 + "px";
-			element.style.display = "block"
+			var pointer = document.getElementById("fire_pointer");
+			pointer.style.left = mouse_x - 32 + "px";
+			pointer.style.top = mouse_y - 32 + "px";
+			pointer.style.display = "block"
 
-			element = document.getElementById("fire_pointer_small");
-			element.style.left = event.clientX - 30 + "px";
-			element.style.top = event.clientY -30 + "px";
-			element.style.display = "block"
+			var small_pointer = document.getElementById("fire_pointer_small");
+			small_pointer.style.width = "0px";
+			small_pointer.style.height = "0px";
+			small_pointer.style.left = mouse_x + "px";
+			small_pointer.style.top = mouse_y + "px";
+			small_pointer.style.display = "block"
 
-			setInterval(whilemousedown, 100);
+			intervalTarget = setInterval(whilemousedown, 20);
 		}
 }
 function mouseup(event) {
-	console.log("up")
 	if(mousedownID!=-1) {  //Only stop if exists
 		clearInterval(mousedownID);
 		mousedownID=-1;
@@ -355,9 +358,12 @@ function mouseup(event) {
 				canvas.removeEventListener("mousemove", drag_pan);	
 			}
 		} else{
-/*			var element = document.getElementById("fire_pointer");
-			element.style.display = "None"*/
-
+			clearInterval(intervalTarget);
+			var element = document.getElementById("fire_pointer");
+			element.style.display = "None"
+			var element = document.getElementById("fire_pointer_small");
+			element.style.display = "None"
+			canvas.removeEventListener("mousemove", target_move);	
 
 			mouseup_time = new Date();
 			var power = (mouseup_time - mousedown_time) / 2000;
@@ -372,6 +378,7 @@ function mouseup(event) {
 			var x_angle = ((x/canvas.clientWidth) * FOV) - (FOV/2)
 			var y_angle = ((y/canvas.clientHeight) * FOV) - (FOV/2)
 			add_planet(-x_angle, -y_angle, ease(power) / 4);
+			console.log("we up")
 		}
 	}
 
@@ -387,14 +394,17 @@ function whilemousedown(){
 		power = 0;
 	}
 	power = ease(power)
+	
+	var pointer = document.getElementById("fire_pointer");
+	pointer.style.left = mouse_x - 32 + "px";
+	pointer.style.top = mouse_y - 32 + "px";
 
-	var power = .5;
-
-/*	var element = document.getElementById("fire_pointer_small");
-	element.style.width = power*60 + "px";
-	element.style.height = power*60 + "px";
-*/	console.log("here")
-
+	var small_pointer = document.getElementById("fire_pointer_small");
+	small_pointer.style.width = power*64 + "px";
+	small_pointer.style.height = power*64 + "px";
+	small_pointer.style.left = mouse_x - power*32 + "px";
+	small_pointer.style.top = mouse_y - power*32+ "px";
+	small_pointer.style.display = "block"
 }
 
 function keydown(event) {
@@ -420,6 +430,11 @@ function keydown(event) {
 
 }
 
+function target_move() {
+	mouse_x = event.clientX;
+	mouse_y = event.clientY;
+}
+
 function drag_angle() {
    let x = event.clientX; 
    let y = event.clientY;
@@ -438,7 +453,7 @@ function drag_angle() {
    update_view_angle(theta, fe);
 
    last_x_position = x;
-   last_y_position = y
+   last_y_position = y;
 }
 
 function drag_pan(){
