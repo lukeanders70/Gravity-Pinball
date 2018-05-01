@@ -1,7 +1,7 @@
 #fire_pointer{
 	width: 60px;
 	height: 60px;
-	border-radius: 32px;
+	border-radius: 32.5px;
 	position: absolute;
 	display: none;
 	border: 3px solid white;
@@ -10,15 +10,16 @@
 #fire_pointer_small{
 	width: 1px;
 	height: 1px;
-	border-radius: 32px;
+	border-radius: 32.5px;
 	position: absolute;
 	display: none;
 	background-color: white;
 }
 
-#canvas-div{
+
+#canvas_div{
+	z-index: 100;
 	position: absolute;
-	width: 700px;
-	height: 700px;
-	z-index: 1000;
+	width: 500px;
+	height: 500px;
 }

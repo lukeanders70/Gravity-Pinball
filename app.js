@@ -2,7 +2,7 @@ var mousedownID = -1;  //indicates if mouse is down
 var angle_or_pan = 1; //indicates dragging will angle camera instead of pan
 var angle_mode = true;
 
-var make_sphere = function(r, center, num_lat, num_lon, mass, last_position){
+var make_sphere = function(r, center, num_lat, num_lon, mass, last_position, moving=true){
 	var num_vertices = 0
 
 	for (let lat = 1.0; lat <= num_lat + 1.0; ++lat) {
@@ -94,7 +94,8 @@ var make_sphere = function(r, center, num_lat, num_lon, mass, last_position){
 					num_vertices:num_vertices,
 					mass:mass,
 					last_position:last_position,
-					new_center:center
+					new_center:center,
+					moving:moving
 				};
 	return object;
 };
@@ -287,8 +288,11 @@ var add_planet = function(x_angle = 0, y_angle = 0, power = 0.05){ //rotate_arou
 
 	direction = mat_vec_mul(x_rotate_matrix, direction)
 	direction = mat_vec_mul(y_rotate_matrix, direction)
+	
+	planetRadius = document.getElementById("planetRadius").value / 100;
+	planetMass = document.getElementById("planetMass").value / 100;
 
-	var sphere1 = make_sphere(.3, cam_location, 8.0, 16.0, .7, v_add(cam_location, v_mul(direction, power))); //r, center, num_lat, num_lon, mass, last_position
+	var sphere1 = make_sphere(planetRadius, cam_location, 8.0, 16.0, planetMass, v_add(cam_location, v_mul(direction, power))); //r, center, num_lat, num_lon, mass, last_position
 	scene_objects.push(sphere1);
 	assign_objects();
 }
@@ -331,10 +335,10 @@ function mousedown(event) {
 			mouse_x = event.clientX
 			mouse_y = event.clientY
 			canvas_div.addEventListener("mousemove", target_move);
-
+		
 			var pointer = document.getElementById("fire_pointer");
-			pointer.style.left = mouse_x - 32 + "px";
-			pointer.style.top = mouse_y - 32 + "px";
+			pointer.style.left = mouse_x - 30 + "px";
+			pointer.style.top = mouse_y - 30 + "px";
 			pointer.style.display = "block"
 
 			var small_pointer = document.getElementById("fire_pointer_small");
@@ -378,7 +382,6 @@ function mouseup(event) {
 			var x_angle = ((x/canvas.clientWidth) * FOV) - (FOV/2)
 			var y_angle = ((y/canvas.clientHeight) * FOV) - (FOV/2)
 			add_planet(-x_angle, -y_angle, ease(power) / 4);
-			console.log("we up")
 		}
 	}
 
@@ -396,36 +399,38 @@ function whilemousedown(){
 	power = ease(power)
 	
 	var pointer = document.getElementById("fire_pointer");
-	pointer.style.left = mouse_x - 32 + "px";
-	pointer.style.top = mouse_y - 32 + "px";
-
+	pointer.style.left = mouse_x - 30 + "px";
+	pointer.style.top = mouse_y - 30 + "px";
+	
 	var small_pointer = document.getElementById("fire_pointer_small");
-	small_pointer.style.width = power*64 + "px";
-	small_pointer.style.height = power*64 + "px";
-	small_pointer.style.left = mouse_x - power*32 + "px";
-	small_pointer.style.top = mouse_y - power*32+ "px";
+	small_pointer.style.width = power*62 + "px";
+	small_pointer.style.height = power*62 + "px";
+	small_pointer.style.left = mouse_x - power*30 + 2 + "px";
+	small_pointer.style.top = mouse_y - power*30 + 2 + "px";
 	small_pointer.style.display = "block"
 }
 
 function keydown(event) {
+	
+	speed = document.getElementById("cameraSpeed").value / 100;
 
 	if(event.keyCode == 37){ //left arrow
-		left(.03);
+		left(speed);
 	}
 	if(event.keyCode == 38){ //up arrow
-		up(.03);
+		up(speed);
 	}
 	if(event.keyCode == 39){ //right arrow
-		right(.03);
+		right(speed);
 	}
 	if(event.keyCode == 40){ //down arrow
-		down(.03);
+		down(speed);
 	}
 	if(event.keyCode == 87){ //w key
-		forward(.03);
+		forward(speed);
 	}
 	if(event.keyCode == 83){ //s key
-		backward(.03);
+		backward(speed);
 	}
 
 }
@@ -584,20 +589,22 @@ var runtime_loop = function() {
 		var vertices_so_far = 0
 		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
 			let object = scene_objects[object_ind];
-			calculate_forces(object, scene_objects);
-			let old_center = object.center;
-			object.new_center = calculate_new_position(object, .1);
-			object.last_position = old_center;
+				calculate_forces(object, scene_objects);
+				let old_center = object.center;
+				object.new_center = calculate_new_position(object, .1);
+				object.last_position = old_center;
 
-			//			      input         original matrix  vector to translate by
-			mat4.translate(world_matrix, identity_matrix, object.center);
-			gl.uniformMatrix4fv(world_uniform_location, gl.FALSE, world_matrix);
+				//			      input         original matrix  vector to translate by
+				mat4.translate(world_matrix, identity_matrix, object.center);
+				gl.uniformMatrix4fv(world_uniform_location, gl.FALSE, world_matrix);
 
-			gl.drawArrays(gl.TRIANGLES, vertices_so_far , object.num_vertices);
-			vertices_so_far += object.num_vertices;
+				gl.drawArrays(gl.TRIANGLES, vertices_so_far , object.num_vertices);
+				vertices_so_far += object.num_vertices;
 		}
 		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
-			scene_objects[object_ind].center = scene_objects[object_ind].new_center;
+			if(scene_objects[object_ind].moving){ 
+				scene_objects[object_ind].center = scene_objects[object_ind].new_center;
+			}
 		}
 
 		if(!stop){
@@ -613,7 +620,7 @@ var runtime_loop = function() {
 var InitDemo = function(){
 
 	canvas = document.getElementById('render_canvas');
-	canvas_div = document.getElementById('canvas-div');
+	canvas_div = document.getElementById("canvas_div");
 	gl = canvas.getContext('webgl');
 
 	if (!gl){
@@ -669,7 +676,7 @@ var InitDemo = function(){
 	scene_objects = []; // these will be global
 	stop = true;
 
-	var sphere1 = make_sphere(.5, [0.0,0.0,0.0], 4.0, 8.0, .7, [0.0,0.0,0.0]);
+	var sphere1 = make_sphere(.5, [0.0,0.0,0.0], 8.0, 16.0, .7, [0.0,0.0,0.0]);
 	scene_objects.push(sphere1);
 
 	//var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.08]);
@@ -720,7 +727,8 @@ var InitDemo = function(){
 ///////////////////////////////
 /// EVENT HANDLERS ///////////
 /////////////////////////////
-var can = document.getElementById("canvas-div");
+
+var can = document.getElementById("canvas_div");
 can.addEventListener("mousedown", mousedown);
 can.addEventListener("mouseup", mouseup);
 //Also clear the interval when user leaves the window with mouse

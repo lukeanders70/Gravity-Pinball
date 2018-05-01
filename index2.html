@@ -5,18 +5,17 @@
 	</head>
 
 	<body id="bod" onload="InitDemo();">
-		<div id="canvas-div">
+		<div id="canvas_div">
 		</div>
-
-		<canvas id="render_canvas" width="700", height="700">
+		<canvas id="render_canvas" height="500px" width="500px">
 			Your Browser Does not support WebGl
 		</canvas>
-		<br />
-
 		<div id="fire_pointer"> </div>
 		<div id="fire_pointer_small"> </div>
+		<br />
 		
 		<i> Canvas is above this text </i>
+
 		<script src="app.js"></script>
 		<script src="gl-matrix.js"></script>
 
@@ -50,13 +49,13 @@
 
 		<button onclick="InitDemo();" id="restart_button"> Restart Demo </button>
 		<button onclick="switch_add_or_move()"> Toggle Firing </button>
-		<button onclick="forward();"> forward </button> 
-		<button onclick="backward();"> backward </button> 
-		<button onclick="left();"> left </button> 
-		<button onclick="right();"> right </button> 
-		<button onclick="up();"> up </button> 
-		<button onclick="down();"> down </button> 
+		</br>
+		Planet Radius<input type="range" min="1" max="200" value="30" class="slider" id="planetRadius">
+		Planet Mass<input type="range" min="1" max="300" value="70" class="slider" id="planetMass">
+		</br>
+		Camera Movement Speed<input type="range" min="1" max="100" value="10" class="slider" id="cameraSpeed">
 
+		
 
 	</body>
 
