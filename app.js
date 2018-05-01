@@ -287,8 +287,11 @@ var add_planet = function(x_angle = 0, y_angle = 0, power = 0.05){ //rotate_arou
 
 	direction = mat_vec_mul(x_rotate_matrix, direction)
 	direction = mat_vec_mul(y_rotate_matrix, direction)
+	
+	planetRadius = document.getElementById("planetRadius").value / 100;
+	planetMass = document.getElementById("planetMass").value / 100;
 
-	var sphere1 = make_sphere(.3, cam_location, 8.0, 16.0, .7, v_add(cam_location, v_mul(direction, power))); //r, center, num_lat, num_lon, mass, last_position
+	var sphere1 = make_sphere(planetRadius, cam_location, 8.0, 16.0, planetMass, v_add(cam_location, v_mul(direction, power))); //r, center, num_lat, num_lon, mass, last_position
 	scene_objects.push(sphere1);
 	assign_objects();
 }
@@ -321,20 +324,20 @@ function mousedown(event) {
 			last_x_position = original_x;
 			last_y_position = original_y;
 			if(angle_or_pan == 1){
-				canvas.addEventListener("mousemove", drag_angle);
+				canvas_div.addEventListener("mousemove", drag_angle);
 			}else{
-				canvas.addEventListener("mousemove", drag_pan);
+				canvas_div.addEventListener("mousemove", drag_pan);
 			}
 		} else{ //we will shoot a planet
 			mousedownID = 1;
 			mousedown_time = new Date();
 			mouse_x = event.clientX
 			mouse_y = event.clientY
-			canvas.addEventListener("mousemove", target_move);
-
+			canvas_div.addEventListener("mousemove", target_move);
+		
 			var pointer = document.getElementById("fire_pointer");
-			pointer.style.left = mouse_x - 32 + "px";
-			pointer.style.top = mouse_y - 32 + "px";
+			pointer.style.left = mouse_x - 30 + "px";
+			pointer.style.top = mouse_y - 30 + "px";
 			pointer.style.display = "block"
 
 			var small_pointer = document.getElementById("fire_pointer_small");
@@ -353,9 +356,9 @@ function mouseup(event) {
 		mousedownID=-1;
 		if(angle_mode){
 			if(angle_or_pan == 1){
-				canvas.removeEventListener("mousemove", drag_angle);
+				canvas_div.removeEventListener("mousemove", drag_angle);
 			}else{
-				canvas.removeEventListener("mousemove", drag_pan);	
+				canvas_div.removeEventListener("mousemove", drag_pan);	
 			}
 		} else{
 			clearInterval(intervalTarget);
@@ -363,7 +366,7 @@ function mouseup(event) {
 			element.style.display = "None"
 			var element = document.getElementById("fire_pointer_small");
 			element.style.display = "None"
-			canvas.removeEventListener("mousemove", target_move);	
+			canvas_div.removeEventListener("mousemove", target_move);	
 
 			mouseup_time = new Date();
 			var power = (mouseup_time - mousedown_time) / 2000;
@@ -378,7 +381,6 @@ function mouseup(event) {
 			var x_angle = ((x/canvas.clientWidth) * FOV) - (FOV/2)
 			var y_angle = ((y/canvas.clientHeight) * FOV) - (FOV/2)
 			add_planet(-x_angle, -y_angle, ease(power) / 4);
-			console.log("we up")
 		}
 	}
 
@@ -396,36 +398,38 @@ function whilemousedown(){
 	power = ease(power)
 	
 	var pointer = document.getElementById("fire_pointer");
-	pointer.style.left = mouse_x - 32 + "px";
-	pointer.style.top = mouse_y - 32 + "px";
-
+	pointer.style.left = mouse_x - 30 + "px";
+	pointer.style.top = mouse_y - 30 + "px";
+	
 	var small_pointer = document.getElementById("fire_pointer_small");
-	small_pointer.style.width = power*64 + "px";
-	small_pointer.style.height = power*64 + "px";
-	small_pointer.style.left = mouse_x - power*32 + "px";
-	small_pointer.style.top = mouse_y - power*32+ "px";
+	small_pointer.style.width = power*62 + "px";
+	small_pointer.style.height = power*62 + "px";
+	small_pointer.style.left = mouse_x - power*30 + 2 + "px";
+	small_pointer.style.top = mouse_y - power*30 + 2 + "px";
 	small_pointer.style.display = "block"
 }
 
 function keydown(event) {
+	
+	speed = document.getElementById("cameraSpeed").value / 100;
 
 	if(event.keyCode == 37){ //left arrow
-		left(.03);
+		left(speed);
 	}
 	if(event.keyCode == 38){ //up arrow
-		up(.03);
+		up(speed);
 	}
 	if(event.keyCode == 39){ //right arrow
-		right(.03);
+		right(speed);
 	}
 	if(event.keyCode == 40){ //down arrow
-		down(.03);
+		down(speed);
 	}
 	if(event.keyCode == 87){ //w key
-		forward(.03);
+		forward(speed);
 	}
 	if(event.keyCode == 83){ //s key
-		backward(.03);
+		backward(speed);
 	}
 
 }
@@ -613,6 +617,7 @@ var runtime_loop = function() {
 var InitDemo = function(){
 
 	canvas = document.getElementById('render_canvas');
+	canvas_div = document.getElementById("canvas_div");
 	gl = canvas.getContext('webgl');
 
 	if (!gl){
@@ -719,7 +724,7 @@ var InitDemo = function(){
 ///////////////////////////////
 /// EVENT HANDLERS ///////////
 /////////////////////////////
-var can = document.getElementById("render_canvas");
+var can = document.getElementById("canvas_div");
 can.addEventListener("mousedown", mousedown);
 can.addEventListener("mouseup", mouseup);
 //Also clear the interval when user leaves the window with mouse
