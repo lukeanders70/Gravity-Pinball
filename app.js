@@ -323,8 +323,8 @@ function mousedown(event) {
 			let x = event.clientX; 
 			let y = event.clientY;
 			canvas.clientWidth
-			var x_angle = ((x/canvas.clientWidth) * FOV) - (FOV/2)
-			var y_angle = ((y/canvas.clientHeight) * FOV) - (FOV/2)
+			var x_angle = -((x/canvas.clientWidth) * FOV) - (FOV/2)
+			var y_angle = -((y/canvas.clientHeight) * FOV) - (FOV/2)
 			add_planet(x_angle, y_angle)
 		}
 }
