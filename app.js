@@ -169,6 +169,10 @@ var v_dot = function(v1, v2){
 	return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
 };
 
+var v_outer = function(v1, v2) {
+	return [v1[0]*v2[0], v1[0]*v2[1], v1[0]*v2[2], v1[1]*v2[0], v1[1]*v2[1], v1[1]*v2[2], v1[2]*v2[0], v1[2]*v2[1], v1[2]*v2[2]]
+}
+
 var find_fe = function(origin, point){
 	let vec = v_sub(point, origin);
 	vec[1] = 0.0 //project onto xz plane
@@ -188,6 +192,10 @@ var unit_from_theta_fe = function(theta, fe){
 	var ret = [0.0,0.0,0.0]
 	v_rotateY(ret, vec, [0.0,1.0,0.0], fe);
 	return ret;
+}
+
+var rotate_around_axis(a, n) {
+	return Math.cos(a) * i + v_mul(v_outer(n, n), (1.0 - Math.cos(a))) + v_mul([0, -n[2], n[1], n[2], 0, -n[0], -n[1], n[0], 0], 1 - Math.sin(a));
 }
 
 /////////////////////////////////////////////////
