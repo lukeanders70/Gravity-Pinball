@@ -195,7 +195,7 @@ var unit_from_theta_fe = function(theta, fe){
 }
 
 var rotate_around_axis(a, n) {
-	return Math.cos(a) * i + v_mul(v_outer(n, n), (1.0 - Math.cos(a))) + v_mul([0, -n[2], n[1], n[2], 0, -n[0], -n[1], n[0], 0], 1 - Math.sin(a));
+	return v_mul([1, 0, 0, 0, 1, 0, 0, 0, 1], Math.cos(a)) + v_mul(v_outer(n, n), (1.0 - Math.cos(a))) + v_mul([0, -n[2], n[1], n[2], 0, -n[0], -n[1], n[0], 0], 1 - Math.sin(a));
 }
 
 /////////////////////////////////////////////////
