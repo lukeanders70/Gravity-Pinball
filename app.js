@@ -312,9 +312,10 @@ var update_view_angle = function(theta, fe){
 
 function mousedown(event) {
 	if(mousedownID==-1)  //Prevent multimple loops!
-		mousedownID = 1;
 
 		if(angle_mode){ // we will angle our viewpoint
+			mousedownID = 1;
+
 			original_x = event.clientX; 
 			original_y = event.clientY;
 			last_x_position = original_x;
@@ -325,10 +326,25 @@ function mousedown(event) {
 				canvas.addEventListener("mousemove", drag_pan);
 			}
 		} else{ //we will shoot a planet
+			console.log("down")
+			mousedownID = 1;
 			mousedown_time = new Date();
+
+			var element = document.getElementById("fire_pointer");
+			element.style.left = event.clientX - 30 + "px";
+			element.style.top = event.clientY -30 + "px";
+			element.style.display = "block"
+
+			element = document.getElementById("fire_pointer_small");
+			element.style.left = event.clientX - 30 + "px";
+			element.style.top = event.clientY -30 + "px";
+			element.style.display = "block"
+
+			setInterval(whilemousedown, 100);
 		}
 }
 function mouseup(event) {
+	console.log("up")
 	if(mousedownID!=-1) {  //Only stop if exists
 		clearInterval(mousedownID);
 		mousedownID=-1;
@@ -339,6 +355,10 @@ function mouseup(event) {
 				canvas.removeEventListener("mousemove", drag_pan);	
 			}
 		} else{
+/*			var element = document.getElementById("fire_pointer");
+			element.style.display = "None"*/
+
+
 			mouseup_time = new Date();
 			var power = (mouseup_time - mousedown_time) / 2000;
 			if(power > 1) {
@@ -354,6 +374,26 @@ function mouseup(event) {
 			add_planet(-x_angle, -y_angle, ease(power) / 4);
 		}
 	}
+
+}
+
+function whilemousedown(){
+	var t = new Date();
+	var power = (t - mousedown_time) / 2000;
+	if(power > 1) {
+		power = 1;
+	}
+	if(power < 0) {
+		power = 0;
+	}
+	power = ease(power)
+
+	var power = .5;
+
+/*	var element = document.getElementById("fire_pointer_small");
+	element.style.width = power*60 + "px";
+	element.style.height = power*60 + "px";
+*/	console.log("here")
 
 }
 

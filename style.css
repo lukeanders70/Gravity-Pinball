@@ -1,0 +1,17 @@
+#fire_pointer{
+	width: 60px;
+	height: 60px;
+	border-radius: 32px;
+	position: absolute;
+	display: none;
+	border: 3px solid white;
+}
+
+#fire_pointer_small{
+	width: 1px;
+	height: 1px;
+	border-radius: 0px;
+	position: absolute;
+	display: none;
+	background-color: white;
+}
