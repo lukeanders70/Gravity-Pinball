@@ -240,7 +240,7 @@ var switch_to_angle = function(){
 var add_planet = function(){
 	let direction = v_div(v_sub(cam_location,cam_look_at) , distance(cam_location,cam_look_at) );
 	console.log(direction);
-	var sphere1 = make_sphere(.3, cam_location, 8.0, 16.0, .7, v_add(cam_location, v_mul(direction, .03))); //r, center, num_lat, num_lon, mass, last_position
+	var sphere1 = make_sphere(.3, cam_location, 8.0, 16.0, .7, v_add(cam_location, v_mul(direction, .05))); //r, center, num_lat, num_lon, mass, last_position
 	scene_objects.push(sphere1);
 	assign_objects();
 }
@@ -551,11 +551,11 @@ var InitDemo = function(){
 	var sphere1 = make_sphere(.5, [0.0,0.0,0.0], 8.0, 16.0, .7, [0.0,0.0,0.0]);
 	scene_objects.push(sphere1);
 
-	//var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.08]);
-	//scene_objects.push(sphere2);
+	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.08]);
+	scene_objects.push(sphere2);
 
-	//var sphere2 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
-	//scene_objects.push(sphere2);
+	var sphere2 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
+	scene_objects.push(sphere2);
 
 	assign_objects();
 	// tell open GL what program we're uMath.sing
