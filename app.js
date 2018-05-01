@@ -679,11 +679,11 @@ var InitDemo = function(){
 	var sphere1 = make_sphere(.5, [0.0,0.0,0.0], 8.0, 16.0, .7, [0.0,0.0,0.0]);
 	scene_objects.push(sphere1);
 
-	//var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.08]);
-	//scene_objects.push(sphere2);
+	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.08]);
+	scene_objects.push(sphere2);
 
-	//var sphere2 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
-	//scene_objects.push(sphere2);
+	var sphere2 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
+	scene_objects.push(sphere2);
 
 	assign_objects();
 	// tell open GL what program we're uMath.sing
