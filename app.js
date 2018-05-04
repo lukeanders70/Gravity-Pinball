@@ -291,8 +291,10 @@ var add_planet = function(x_angle = 0, y_angle = 0, power = 0.05){ //rotate_arou
 	
 	planetRadius = document.getElementById("planetRadius").value / 100;
 	planetMass = document.getElementById("planetMass").value / 100;
+	
+	stationary = document.getElementById("isStationary").checked
 
-	var sphere1 = make_sphere(planetRadius, cam_location, 8.0, 16.0, planetMass, v_add(cam_location, v_mul(direction, power))); //r, center, num_lat, num_lon, mass, last_position
+	var sphere1 = make_sphere(planetRadius, v_add(cam_location, v_mul(direction, -planetRadius * 2)), 8.0, 16.0, planetMass, v_add(v_add(cam_location, v_mul(direction, power)), v_mul(direction, -planetRadius * 2)), !stationary); //r, center, num_lat, num_lon, mass, last_position, can move
 	scene_objects.push(sphere1);
 	assign_objects();
 }
@@ -617,7 +619,7 @@ var runtime_loop = function() {
 	}
 }
 
-var InitDemo = function(){
+var InitDemo = function(stationary = false){
 
 	canvas = document.getElementById('render_canvas');
 	canvas_div = document.getElementById("canvas_div");
@@ -676,14 +678,14 @@ var InitDemo = function(){
 	scene_objects = []; // these will be global
 	stop = true;
 
-	var sphere1 = make_sphere(.5, [0.0,0.0,0.0], 8.0, 16.0, .7, [0.0,0.0,0.0]);
+	var sphere1 = make_sphere(.5, [0.0,0.0,0.0], 8.0, 16.0, .7, [0.0,0.0,0.0], !stationary);
 	scene_objects.push(sphere1);
 
 	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.08]);
 	scene_objects.push(sphere2);
 
-	var sphere2 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
-	scene_objects.push(sphere2);
+	var sphere3 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
+	scene_objects.push(sphere3);
 
 	assign_objects();
 	// tell open GL what program we're uMath.sing
