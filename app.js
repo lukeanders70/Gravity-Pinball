@@ -2,7 +2,69 @@ var mousedownID = -1;  //indicates if mouse is down
 var angle_or_pan = 1; //indicates dragging will angle camera instead of pan
 var angle_mode = true;
 
-var make_sphere = function(r, center, num_lat, num_lon, mass, last_position, moving=true){
+var add_triangle = function(v1, v2, v3, c1, c2, c3, star=false){ //if it's a star we will add to the start of the array instead
+	if(!star){
+		//vertex 1
+		triangleVertices.push(v1[0])
+		triangleVertices.push(v1[1])
+		triangleVertices.push(v1[2])
+
+		triangleVertices.push(c1[0])
+		triangleVertices.push(c1[1])
+		triangleVertices.push(c1[2])
+
+		//vertex 2
+		triangleVertices.push(v2[0])
+		triangleVertices.push(v2[1])
+		triangleVertices.push(v2[2])
+		
+		triangleVertices.push(c2[0])
+		triangleVertices.push(c2[1])
+		triangleVertices.push(c2[2])
+
+		//vertex 3
+		triangleVertices.push(v3[0])
+		triangleVertices.push(v3[1])
+		triangleVertices.push(v3[2])
+		
+		triangleVertices.push(c3[0])
+		triangleVertices.push(c3[1])
+		triangleVertices.push(c3[2])
+
+	}
+	else{
+		//vertex 3
+		triangleVertices.unshift(c3[2])
+		triangleVertices.unshift(c3[1])
+		triangleVertices.unshift(c3[0])
+
+		triangleVertices.unshift(v3[2])
+		triangleVertices.unshift(v3[1])
+		triangleVertices.unshift(v3[0])
+
+		//vertex 2
+		
+		triangleVertices.unshift(c2[2])
+		triangleVertices.unshift(c2[1])
+		triangleVertices.unshift(c2[0])
+
+		triangleVertices.unshift(v2[2])
+		triangleVertices.unshift(v2[1])
+		triangleVertices.unshift(v2[0])
+
+		//vertex 1
+
+		triangleVertices.unshift(c1[2])
+		triangleVertices.unshift(c1[1])
+		triangleVertices.unshift(c1[0])
+
+		triangleVertices.unshift(v1[2])
+		triangleVertices.unshift(v1[1])
+		triangleVertices.unshift(v1[0])
+	}
+}
+
+var make_sphere = function(r, center, num_lat, num_lon, mass, last_position, moving=true, star=false){
 	var num_vertices = 0
 
 	for (let lat = 1.0; lat <= num_lat + 1.0; ++lat) {
@@ -38,51 +100,8 @@ var make_sphere = function(r, center, num_lat, num_lon, mass, last_position, mov
 			let y01 = (r * Math.cos(a7));
 			let z01 = (r * Math.sin(a7) * Math.cos(a8));
 
-			triangleVertices.push(x00)
-			triangleVertices.push(y00)
-			triangleVertices.push(z00)
-			triangleVertices.push(1.0)
-			triangleVertices.push(1.0)
-			triangleVertices.push(0.0)
-
-			triangleVertices.push(x10)
-			triangleVertices.push(y10)
-			triangleVertices.push(z10)
-			triangleVertices.push(0.7)
-			triangleVertices.push(0.0)
-			triangleVertices.push(0.3)
-
-
-			triangleVertices.push(x01)
-			triangleVertices.push(y01)
-			triangleVertices.push(z01)
-			triangleVertices.push(1.0)
-			triangleVertices.push(0.0)
-			triangleVertices.push(0.0)
-
-
-			triangleVertices.push(x10)
-			triangleVertices.push(y10)
-			triangleVertices.push(z10)
-			triangleVertices.push(0.0)
-			triangleVertices.push(1.0)
-			triangleVertices.push(0.0)
-
-
-			triangleVertices.push(x11)
-			triangleVertices.push(y11)
-			triangleVertices.push(z11)
-			triangleVertices.push(0.0)
-			triangleVertices.push(0.0)
-			triangleVertices.push(1.0)
-
-
-			triangleVertices.push(x01)
-			triangleVertices.push(y01)
-			triangleVertices.push(z01)
-			triangleVertices.push(0.0)
-			triangleVertices.push(0.3)
-			triangleVertices.push(0.7)
+			add_triangle([x00,y00,z00],[x10,y10,z10],[x01,y01,z01],[1.0,1.0,0.0],[0.7,0.0,0.3],[1.0,0.0,0.0], star);
+			add_triangle([x10,y10,z10],[x11,y11,z11],[x01,y01,z01],[0.0,1.0,0.0],[0.0,0.0,1.0],[0.0,0.3,0.7], star);
 
 			num_vertices += 6;
 
@@ -95,7 +114,8 @@ var make_sphere = function(r, center, num_lat, num_lon, mass, last_position, mov
 					mass:mass,
 					last_position:last_position,
 					new_center:center,
-					moving:moving
+					moving:moving,
+					star:star
 				};
 	return object;
 };
@@ -264,6 +284,13 @@ var ease = function(t){
 /////////////////////////////////////////////////
 //////////////// UI HELPERS ////////////////////
 ///////////////////////////////////////////////
+var change_light = function(loc, intensity){
+	light_location = loc
+	light_intensity = intensity
+	gl.uniform3fv(light_location_uniform_location, loc);
+	gl.uniform3fv(light_intensity_uniform_location, intensity);
+}
+
 var switch_to_pan = function(){
 	angle_or_pan = -1;
 }
@@ -573,6 +600,7 @@ var runtime_loop = function() {
 	var identity_matrix = new Float32Array(16);
 	mat4.identity(identity_matrix);
 	gl.enable(gl.DEPTH_TEST);
+	gl.depthFunc(gl.LEQUAL);
 	var stop = false;
 
 	// if we restart the demo, the old loop will keep running and our simulation will go twice as fast
@@ -582,17 +610,47 @@ var runtime_loop = function() {
 		console.log("false")
 	});
 
+	lights = [[0,0,0],[0, 15, 0], [-10,0,0]];
+
+
 	var loop = function() {
+
 		gl.clearColor(0.0, 0.0, 0.0, 1.0);
 		gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
 
-		var vertices_so_far = 0
-		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
-			let object = scene_objects[object_ind];
+		gl.disable(gl.BLEND);
+		for(var light_ind = 0; light_ind < lights.length; ++light_ind){
+
+			var vertices_so_far = 0
+			light = lights[light_ind]
+			if(light_ind == 0){
+				gl.depthMask(true)
+				gl.colorMask(false, false, false, false);
+			}else{
+				gl.colorMask(true, true, true, true);
+				gl.depthMask(false)
+				change_light(light, [100, 100, 100])
+			}
+			gl.clearColor(0.0, 0.0, 0.0, 1.0);
+			gl.clear(gl.DEPTH_BUFFER_BIT);
+
+			for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
+
+				gl.enable(gl.DEPTH_TEST);
+				gl.depthFunc(gl.LEQUAL);
+
+				let object = scene_objects[object_ind];
 				calculate_forces(object, scene_objects);
 				let old_center = object.center;
 				object.new_center = calculate_new_position(object, .1);
 				object.last_position = old_center;
+
+				if(object.star){
+					change_light(object.new_center, light_intensity)
+					gl.uniform1i(is_star_location, 1);
+				} else{
+					gl.uniform1i(is_star_location, 0);
+				}
 
 				//			      input         original matrix  vector to translate by
 				mat4.translate(world_matrix, identity_matrix, object.center);
@@ -600,6 +658,9 @@ var runtime_loop = function() {
 
 				gl.drawArrays(gl.TRIANGLES, vertices_so_far , object.num_vertices);
 				vertices_so_far += object.num_vertices;
+			}
+			gl.enable(gl.BLEND);
+			gl.blendFunc(gl.ONE, gl.ONE);
 		}
 		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
 			if(scene_objects[object_ind].moving){ 
@@ -679,11 +740,11 @@ var InitDemo = function(){
 	var sphere1 = make_sphere(.5, [0.0,0.0,0.0], 8.0, 16.0, .7, [0.0,0.0,0.0]);
 	scene_objects.push(sphere1);
 
-	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.08]);
+/*	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.08]);
 	scene_objects.push(sphere2);
 
 	var sphere2 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
-	scene_objects.push(sphere2);
+	scene_objects.push(sphere2);*/
 
 	assign_objects();
 	// tell open GL what program we're uMath.sing
@@ -694,6 +755,11 @@ var InitDemo = function(){
 	world_uniform_location = gl.getUniformLocation(program, 'world_matrix_render');
 	view_uniform_location = gl.getUniformLocation(program, 'view_matrix_render');
 	projection_uniform_location = gl.getUniformLocation(program, 'projection_matrix_render');
+
+	light_location_uniform_location = gl.getUniformLocation(program, 'lPosition');
+	light_intensity_uniform_location = gl.getUniformLocation(program, 'lIntensity');
+
+	is_star_location = gl.getUniformLocation(program, 'isStar');
 
 	//setting the values in the CPU of matrices
 	world_matrix = new Float32Array(16);
@@ -709,12 +775,18 @@ var InitDemo = function(){
 	FOV = glMatrix.toRadian(90)
 	mat4.lookAt(view_matrix, cam_location, cam_look_at, camera_up); // camera: location, position looking at, direction, that it up
 
+	light_location = [10.0, 10.0, 10.0]
+	light_intensity = [50.0, 15.0, 10.0]
+
 	mat4.perspective(projection_matrix, glMatrix.toRadian(90), canvas.clientWidth/canvas.clientHeight, 0.1, 1000.0); // fov in rad, aspect ratio width/height, near plane and far plane; 
 
 	//sending to shader
 	gl.uniformMatrix4fv(world_uniform_location, gl.FALSE, world_matrix); //uniform matrix of floats. gl.FALSE just indicates that we don't want the transpose
 	gl.uniformMatrix4fv(view_uniform_location, gl.FALSE, view_matrix);
 	gl.uniformMatrix4fv(projection_uniform_location, gl.FALSE, projection_matrix);
+	gl.uniform3fv(light_location_uniform_location, light_location);
+	gl.uniform3fv(light_intensity_uniform_location, light_intensity);
+	gl.uniform1i(is_star_location, 0);
 
 	//
 	// Main render loop

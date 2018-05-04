@@ -25,13 +25,22 @@
 
 			attribute vec3 vertPosition;
 			attribute vec3 vertColor;
+
 			varying vec3 fragColor;
+			varying vec3 fNormal;
+			varying vec3 fPosition;
+
 			uniform mat4 world_matrix_render;
 			uniform mat4 view_matrix_render;
 			uniform mat4 projection_matrix_render;
 
 			void main(){
+				fNormal = vec3(0.0);
+				fPosition = vec3(0.0);
 				fragColor = vertColor;
+				fNormal = vertPosition / length(vertPosition);
+				fPosition = vec3(world_matrix_render * vec4(vertPosition, 1.0));
+
 				gl_Position = projection_matrix_render * view_matrix_render * world_matrix_render * vec4(vertPosition, 1.0);
 			}
 		</script>
@@ -40,15 +49,42 @@
 		<script id="fragment_shader" type="not-javascript">
 			precision mediump float;
 
+			uniform vec3 lPosition;
+			uniform vec3 lIntensity;
+			uniform bool isStar;
+
 			varying vec3 fragColor;
+			varying vec3 fNormal;
+			varying vec3 fPosition;
 
 			void main(){
 				gl_FragColor = vec4(fragColor, 1.0);
+
+			    float r = length(lPosition - fPosition);
+			    vec3 l = (lPosition - fPosition) / r;
+			   	vec3 int_vec = vec3(0.0);
+			   	vec3 ambient = vec3(0.3, 0.3, 0.3);
+			   	vec3 star_ambient = vec3(100.0, 100.0, 100.0);
+
+			   	if(isStar){
+			   		int_vec = star_ambient;
+			   	}
+			   	else{
+				    if(dot(fNormal,l) > 0.0){
+				    	int_vec = ( (lIntensity/(r*r))*dot(fNormal, l) ) + ambient;
+				    }
+				    else{
+				    	int_vec = ambient;
+				    }
+				}
+
+			    gl_FragColor = vec4(int_vec * fragColor, 1.0);
 			}
 		</script>
 
 		<button onclick="InitDemo();" id="restart_button"> Restart Demo </button>
 		<button onclick="switch_add_or_move()"> Toggle Firing </button>
+		<button onclick="change_light()"> Change Light </button>
 		</br>
 		Planet Radius<input type="range" min="1" max="200" value="30" class="slider" id="planetRadius">
 		Planet Mass<input type="range" min="1" max="300" value="70" class="slider" id="planetMass">
