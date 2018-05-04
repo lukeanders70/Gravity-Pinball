@@ -318,9 +318,16 @@ var add_planet = function(x_angle = 0, y_angle = 0, power = 0.05){ //rotate_arou
 	
 	planetRadius = document.getElementById("planetRadius").value / 100;
 	planetMass = document.getElementById("planetMass").value / 100;
-
-	var sphere1 = make_sphere(planetRadius, cam_location, 8.0, 16.0, planetMass, v_add(cam_location, v_mul(direction, power))); //r, center, num_lat, num_lon, mass, last_position
-	scene_objects.push(sphere1);
+	
+	stationary = document.getElementById("isStationary").checked
+	star = document.getElementById("isStar").checked
+	//                                r,                            center,                       num_lat   num_lon  mass                                     last_position                                            moving=true  star=false
+	var sphere1 = make_sphere(planetRadius, v_add(cam_location, v_mul(direction, -planetRadius * 2)), 8.0, 16.0, planetMass, v_add(v_add(cam_location, v_mul(direction, power)), v_mul(direction, -planetRadius * 2)), !stationary, star); //r, center, num_lat, num_lon, mass, last_position, can move
+	if(star){
+		scene_objects.unshift(sphere1)
+	}else{
+		scene_objects.push(sphere1);
+	}
 	assign_objects();
 }
 
@@ -610,15 +617,32 @@ var runtime_loop = function() {
 		console.log("false")
 	});
 
-	lights = [[0,0,0],[0, 15, 0], [-10,0,0]];
-
-
 	var loop = function() {
 
 		gl.clearColor(0.0, 0.0, 0.0, 1.0);
 		gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
 
 		gl.disable(gl.BLEND);
+		lights = [[0.0,0.0,0.0]]
+		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
+
+			gl.enable(gl.DEPTH_TEST);
+			gl.depthFunc(gl.LEQUAL);
+
+			let object = scene_objects[object_ind];
+			calculate_forces(object, scene_objects);
+			let old_center = object.center;
+			object.new_center = calculate_new_position(object, .1);
+			object.last_position = old_center;
+
+			if(object.star){
+				lights.push(object.new_center);
+			}
+		}
+
+		gl.enable(gl.BLEND);
+		gl.blendFunc(gl.ONE, gl.ONE);
+
 		for(var light_ind = 0; light_ind < lights.length; ++light_ind){
 
 			var vertices_so_far = 0
@@ -636,17 +660,8 @@ var runtime_loop = function() {
 
 			for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
 
-				gl.enable(gl.DEPTH_TEST);
-				gl.depthFunc(gl.LEQUAL);
-
 				let object = scene_objects[object_ind];
-				calculate_forces(object, scene_objects);
-				let old_center = object.center;
-				object.new_center = calculate_new_position(object, .1);
-				object.last_position = old_center;
-
 				if(object.star){
-					change_light(object.new_center, light_intensity)
 					gl.uniform1i(is_star_location, 1);
 				} else{
 					gl.uniform1i(is_star_location, 0);
@@ -659,9 +674,9 @@ var runtime_loop = function() {
 				gl.drawArrays(gl.TRIANGLES, vertices_so_far , object.num_vertices);
 				vertices_so_far += object.num_vertices;
 			}
-			gl.enable(gl.BLEND);
-			gl.blendFunc(gl.ONE, gl.ONE);
+
 		}
+
 		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
 			if(scene_objects[object_ind].moving){ 
 				scene_objects[object_ind].center = scene_objects[object_ind].new_center;
@@ -678,7 +693,7 @@ var runtime_loop = function() {
 	}
 }
 
-var InitDemo = function(){
+var InitDemo = function(stationary = false){
 
 	canvas = document.getElementById('render_canvas');
 	canvas_div = document.getElementById("canvas_div");
@@ -737,14 +752,14 @@ var InitDemo = function(){
 	scene_objects = []; // these will be global
 	stop = true;
 
-	var sphere1 = make_sphere(.5, [0.0,0.0,0.0], 8.0, 16.0, .7, [0.0,0.0,0.0]);
-	scene_objects.push(sphere1);
+	var sphere1 = make_sphere(.5, [0.0,0.0,0.0], 8.0, 16.0, .7, [0.0,0.0,0.0], !stationary, true);
+	scene_objects.unshift(sphere1);
 
-/*	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.08]);
+	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.08]);
 	scene_objects.push(sphere2);
 
-	var sphere2 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
-	scene_objects.push(sphere2);*/
+	var sphere3 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
+	scene_objects.push(sphere3); 
 
 	assign_objects();
 	// tell open GL what program we're uMath.sing
@@ -775,8 +790,10 @@ var InitDemo = function(){
 	FOV = glMatrix.toRadian(90)
 	mat4.lookAt(view_matrix, cam_location, cam_look_at, camera_up); // camera: location, position looking at, direction, that it up
 
-	light_location = [10.0, 10.0, 10.0]
-	light_intensity = [50.0, 15.0, 10.0]
+	light_location = [0.0,0.0,0.0]
+	light_intensity = [0.0,0.0,0.0]
+	lights = [[0,0,0]];
+
 
 	mat4.perspective(projection_matrix, glMatrix.toRadian(90), canvas.clientWidth/canvas.clientHeight, 0.1, 1000.0); // fov in rad, aspect ratio width/height, near plane and far plane; 
 
