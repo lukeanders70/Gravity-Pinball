@@ -14,10 +14,10 @@
 
 		<h2> Technical Approach </h2>
 
-		<ul>
+		<ul style="list-style-type:none;">
 			<li>
 				<h3>WebGL</h3>
-				<p>It was important to us that we make our project more or less from scratch. Our startercode was composed only of a tutorial<sup>1</sup> we followed for rendering a triangle in WebGL. One large technical hurdle therefore was getting WebGL up and running correctly. Throughout the project we made heavy reference to Mozillas WebGL documentation<sup>2</sup></p>
+				<p>It was important to us that we make our project more or less from scratch. Our startercode was composed only of a tutorial<sup>1</sup> we followed for rendering a triangle in WebGL. One large technical hurdle therefore was getting WebGL up and running correctly. Throughout the project we made heavy reference to Mozillas WebGL documentation<sup>2</sup>.</p>
 			</li>
 			<li>
 				<h3>Rendering Spheres</h3>
@@ -86,6 +86,8 @@
 
 		<h2> Results </h2>
 		<h3 class="sub"> <i> interactive gravity simulation running in real time in webGL </i></h2>
+		
+		<p> Use w to zoom in and s to zoom out.  Use the arrow keys to shift the camera in space.  Click and drag the screen while firing mode is disabled to pan around the screen.  With firing mode enabled, click and release your mouse on the screen to fire a planet into the system.  The longer you hold your mouse before release, the greater initial velocity the planet will have.  Enable is stationary to add a stationary body to the system.  Enable is star to add a star to the system, which will emit light.  Use the Planet Mass and Planet Radius sliders to set the mass and radius of the next planet that you fire into the system.  Use the Camera Movement Speed Slider to set the speed at which your camera shifts.  Click regular demo to start a 3-body system where all planets are affected by each other's gravity.  Click stationary demo to start a 3-body system where the central star is held stationary.</p>
 
 		<img src="https://images.pexels.com/photos/8892/pexels-photo.jpg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260" crossOrigin="anonymous" id="immy" style="display:none">
 		<div id="canvas_div" align="center"></div>
@@ -183,12 +185,28 @@
 		Camera Movement Speed<input type="range" min="1" max="100" value="10" class="slider" id="cameraSpeed">
 		</div>
 
+		<table style="list-style-type:none;" align="center">
+			<tr>
+				<td>
+					<img src="images/binary star system.png" width="320px">
+					<figcaption align="middle">Binary Star System</figcaption>
+				</td>
+				<td>
+					<img src="images/high amount system.png" width="320px">
+					<figcaption align="middle">High Volume Star System</figcaption>
+				</td>
+				<td>
+					<img src="images/super star system.png" width="320px">
+					<figcaption align="middle">Super Star System</figcaption>
+				</td>
+			</tr>
+		</table>
 
 		<h2> References </h2>
 		<ol>
 			<li> <a href="https://www.youtube.com/watch?v=kB0ZVUrI4Aw">WebGL Tutorial 01 - Setup and Triangle</a> </li>
 			<li> <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/enable"> Mozilla WebGL documentation </a> </li>
-			<li> <a href="https://cs184.eecs.berkeley.edu/lecture/simulation/slide_025"> CS184 Lecture Slides March 19<sup>th</sup>: Into to Simulation </a> </li>
+			<li> <a href="https://cs184.eecs.berkeley.edu/lecture/simulation/slide_025"> CS184 Lecture Slides March 19<sup>th</sup>: Intro to Simulation </a> </li>
 			<li> <a href="https://stackoverflow.com/questions/15505272/javascript-while-mousedown"> StackOverflow: Javascript While MouseDown </a> </li>
 			<li> <a href="https://stackoverflow.com/questions/12886286/addeventlistener-for-keydown-on-canvas"> StackOverflow: addEventListener for keydown on Canvas</a> </li>
 			<li><a href="http://learnwebgl.brown37.net/10_surface_properties/texture_mapping_images.html"> Learn WebGL: Texture Mapping Using Images</a></li>
@@ -196,38 +214,22 @@
 		</ol>
 		
 		<h2> Contributions </h2>
-		<ol>Jacob Green
-			<li></li>
+		<ul style="width:25%; float:left; margin-left:20%; display:inline-block;">Jacob Green
+			<li>Pinball Idea</li>
+			<li>Power Indicator</li>
+			<li>Object Cannon</li>
+			<li>User Settings and Interaction Controls</li>
+			<li>Texture Mapping</li>
+		</ul>
+		<ul style="width:25%; float:right; margin-right:20%; display:inline-block;">Luke Larson
+			<li>Gravity Simulation Idea</li>
+			<li>Sphere Rendering</li>
+			<li>Gravity Simulation</li>
+			<li>Camera Rotation and Panning</li>
+			<li>Dynamic and Blinn-Phong Lighting</li>
+		</ul>
 
-		<div style="text-align:center;"><a href="https://www.youtube.com/watch?v=g0pZAiH-bnM&feature=youtu.be&hd=1" style="font-size:35px;"> VIDEO </a></div>
-		<div style="text-align:center;"><a href="https://docs.google.com/presentation/d/1DgpgvnQyiamcUaq1dkLUnyq8NdPVK4QJvYyoELm4bi0/edit?usp=sharing" style="font-size:35px;"> SLIDES </a></div>
+		<div style="text-align:center;"><a href="https://www.youtube.com/watch?v=dF9lvtO1n7U&feature=youtu.be&hd=1" style="font-size:35px;"> VIDEO </a></div>
 
 	</body>
-	<!-- Vertex Shader for WebGL, not to be rendered-->
-	<script id="vertex_shader" type="not-javascript">
-		precision mediump float;
-
-		attribute vec3 vertPosition;
-		attribute vec3 vertColor;
-		varying vec3 fragColor;
-		uniform mat4 world_matrix_render;
-		uniform mat4 view_matrix_render;
-		uniform mat4 projection_matrix_render;
-
-		void main(){
-			fragColor = vertColor;
-			gl_Position = projection_matrix_render * view_matrix_render * world_matrix_render * vec4(vertPosition, 1.0);
-		}
-	</script>
-
-	<!-- Fragment Shader for WebGL, not to be rendered-->
-	<script id="fragment_shader" type="not-javascript">
-		precision mediump float;
-
-		varying vec3 fragColor;
-
-		void main(){
-			gl_FragColor = vec4(fragColor, 1.0);
-		}
-	</script>
 </html>

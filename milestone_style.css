@@ -11,13 +11,13 @@ h2{
 	margin-top: 50px;
 }
 
-.sub{
-	color: gray;
+h3{
 	text-align: center;
 }
 
-ul{
-	list-style-type : none;
+.sub{
+	color: gray;
+	text-align: center;
 }
 
 p{
