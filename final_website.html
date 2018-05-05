@@ -4,27 +4,10 @@
 		<title>Final</title>
 		<link rel="stylesheet" type="text/css" href="milestone_style.css">
 	</head>
+
 	<body onload="InitDemo();">
 		<h1> Gravitational Pinball </h1>
-		<h3 class="sub"> <i> interactive gravity simulation running in real time in webGL </i></h2>
-
-		<canvas id="render_canvas" style="width:500; height:500;     padding-left: 0;
-    padding-right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;" >
-			Your Browser Does not support WebGl
-		</canvas>
-		<button onclick="InitDemo();" style="padding-left: 0;
-    padding-right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
-    "> Restart Demo </button>
-		<br />
-		<script src="app.js"></script>
-		<script src="gl-matrix.js"></script>
-
+		
 		<h2> Abstract </h2>
 
 		<p> In ancient times, our ancestors looked up to the stars and wondered what lay beyond. In modern times, we need look no farther than our computer screens. Gravity Pinball is a 3D interactactive gravity simulator WebGL that allows users to expereince and play with the cosmic forces that shaped our universe. WebGL is used to render realistic 3D models of planets and stars. Texture and bump mapping add to the detail of these simulated modies by adding fine details which are too small for the mesh. Stars are rendered similarly to planets, but produce light which can fall on and illuminate other objects. All of these objects are controlled by the forces of gravity, which is goverend by Newton's gravity equations. Each pair of objects produces a force on each other object, which causes motion. Kepler's laws of orbital bodies are emergant behavior of this system. Finally, users can interact with the program by rotating or panning the camera, or by adding new planets of any size or mass and shooting them off. </p>
@@ -102,6 +85,104 @@
 		</ul>
 
 		<h2> Results </h2>
+		<h3 class="sub"> <i> interactive gravity simulation running in real time in webGL </i></h2>
+
+		<img src="https://images.pexels.com/photos/8892/pexels-photo.jpg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260" crossOrigin="anonymous" id="immy" style="display:none">
+		<div id="canvas_div" align="center"></div>
+		<div id="fire_pointer"> </div>
+		<div id="fire_pointer_small"> </div>
+
+
+		<canvas id="render_canvas" height="500px" width="500px">
+			Your Browser Does not support WebGl
+		</canvas>
+
+		<br />
+
+		<script src="app.js"></script>
+		<script src="gl-matrix.js"></script>
+
+		<!-- Vertex Shader for WebGL, not to be rendered-->
+		<script id="vertex_shader" type="not-javascript">
+			precision mediump float;
+
+			attribute vec3 vertPosition;
+			attribute vec3 vertColor;
+			attribute vec2 aTexPosition;
+
+			varying vec3 fragColor;
+			varying vec3 fNormal;
+			varying vec3 fPosition;
+			varying vec2 vTexPosition;
+
+			uniform mat4 world_matrix_render;
+			uniform mat4 view_matrix_render;
+			uniform mat4 projection_matrix_render;
+
+			void main(){
+				vTexPosition = aTexPosition;
+				fNormal = vec3(0.0);
+				fPosition = vec3(0.0);
+				fragColor = vertColor;
+				fNormal = vertPosition / length(vertPosition);
+				fPosition = vec3(world_matrix_render * vec4(vertPosition, 1.0));
+
+				gl_Position = projection_matrix_render * view_matrix_render * world_matrix_render * vec4(vertPosition, 1.0);
+			}
+		</script>
+
+		<!-- Fragment Shader for WebGL, not to be rendered-->
+		<script id="fragment_shader" type="not-javascript">
+			precision mediump float;
+
+			uniform vec3 lPosition;
+			uniform vec3 lIntensity;
+			uniform bool isStar;
+			uniform sampler2D u_Sampler;
+			uniform float numLights;
+
+			varying vec3 fragColor;
+			varying vec3 fNormal;
+			varying vec3 fPosition;
+			varying vec2 vTexPosition;
+
+			void main(){
+				gl_FragColor = vec4(fragColor, 1.0);
+
+			    float r = length(lPosition - fPosition);
+			    vec3 l = (lPosition - fPosition) / r;
+			   	vec3 int_vec = vec3(0.0);
+			   	vec3 ambient = vec3(0.4, 0.4, 0.4) / numLights;
+			   	vec3 star_ambient = vec3(5.0, 3.0, 2.0) / numLights;
+
+			   	if(isStar){
+			   		int_vec = star_ambient;
+			   	}
+			   	else{
+				    if(dot(fNormal,l) > 0.0){
+				    	int_vec = ( (lIntensity/(r*r))*dot(fNormal, l) ) + ambient;
+				    }
+				    else{
+				    	int_vec = ambient;
+				    }
+				}
+
+			    gl_FragColor = vec4(int_vec, 1.0)*texture2D(u_Sampler, vTexPosition);
+			}
+		</script>
+		<div id="center_div">
+		<button onclick="InitDemo();" id="restart_button"> Regular Demo </button>
+		<button onclick="InitDemo(true);" id="restart_button"> Stationary Demo </button>
+		Firing Mode: <input type="checkbox" id="firingMode" onclick="switch_add_or_move()">
+		Is Stationary: <input type="checkbox" id="isStationary">
+		Is Star: <input type="checkbox" id="isStar">
+		</br>
+		Planet Radius<input type="range" min="1" max="200" value="30" class="slider" id="planetRadius">
+		Planet Mass<input type="range" min="1" max="300" value="70" class="slider" id="planetMass">
+		</br>
+		Camera Movement Speed<input type="range" min="1" max="100" value="10" class="slider" id="cameraSpeed">
+		</div>
+
 
 		<h2> References </h2>
 		<ol>

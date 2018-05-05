@@ -393,8 +393,8 @@ function mousedown(event) {
 		} else{ //we will shoot a planet
 			mousedownID = 1;
 			mousedown_time = new Date();
-			mouse_x = event.clientX
-			mouse_y = event.clientY
+			mouse_x = event.clientX;
+			mouse_y = event.clientY + window.pageYOffset;
 			canvas_div.addEventListener("mousemove", target_move);
 		
 			var pointer = document.getElementById("fire_pointer");
@@ -409,7 +409,7 @@ function mousedown(event) {
 			small_pointer.style.top = mouse_y + "px";
 			small_pointer.style.display = "block"
 
-			intervalTarget = setInterval(whilemousedown, 100);
+			intervalTarget = setInterval(whilemousedown, 50);
 		}
 }
 function mouseup(event) {
@@ -438,10 +438,12 @@ function mouseup(event) {
 			if(power < 0) {
 				power = 0;
 			}
-			let x = event.clientX; 
-			let y = event.clientY;
-			var x_angle = ((x/canvas.clientWidth) * FOV) - (FOV/2)
-			var y_angle = ((y/canvas.clientHeight) * FOV) - (FOV/2)
+			let x = event.clientX - canvas.offsetLeft + window.pageXOffset; 
+			let y = event.clientY - canvas.offsetTop + window.pageYOffset;
+			console.log(event.clientX);
+			console.log(event.clientY);
+			var x_angle = ((x/canvas.clientWidth) * FOV) - (FOV/2);
+			var y_angle = ((y/canvas.clientHeight) * FOV) - (FOV/2);
 			add_planet(-x_angle, -y_angle, ease(power) / 4);
 		}
 	}
@@ -458,7 +460,7 @@ function whilemousedown(){
 		power = 0;
 	}
 	power = ease(power)
-	
+
 	var pointer = document.getElementById("fire_pointer");
 	pointer.style.left = mouse_x - 30 + "px";
 	pointer.style.top = mouse_y - 30 + "px";
@@ -479,12 +481,14 @@ function keydown(event) {
 		left(speed);
 	}
 	if(event.keyCode == 38){ //up arrow
+		event.preventDefault()
 		up(speed);
 	}
 	if(event.keyCode == 39){ //right arrow
 		right(speed);
 	}
 	if(event.keyCode == 40){ //down arrow
+		event.preventDefault()
 		down(speed);
 	}
 	if(event.keyCode == 87){ //w key
@@ -498,7 +502,7 @@ function keydown(event) {
 
 function target_move() {
 	mouse_x = event.clientX;
-	mouse_y = event.clientY;
+	mouse_y = event.clientY + window.pageYOffset;
 }
 
 function drag_angle() {
@@ -727,6 +731,7 @@ var runtime_loop = function() {
 
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.ONE, gl.ONE);
+		gl.uniform1f(num_lights_uniform_location, lights.length - 1);
 
 		for(var light_ind = 0; light_ind < lights.length; ++light_ind){
 
@@ -834,9 +839,7 @@ var InitDemo = function(stationary = false){
 	imCanvas.style.display = "none";
 	imCanvas.width = 1024;
 	imCanvas.height = 1024;
-/*	image0.src = "https://images.pexels.com/photos/8892/pexels-photo.jpg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260";
-	image0.crossOrigin="anonymous"*/
-	document.getElementById("bod").appendChild(imCanvas);
+	document.body.appendChild(imCanvas);
 	
 	//
 	// create buffer
@@ -878,6 +881,7 @@ var InitDemo = function(stationary = false){
 
 	light_location_uniform_location = gl.getUniformLocation(program, 'lPosition');
 	light_intensity_uniform_location = gl.getUniformLocation(program, 'lIntensity');
+	num_lights_uniform_location = gl.getUniformLocation(program, 'numLights');
 
 	is_star_location = gl.getUniformLocation(program, 'isStar');
 
@@ -908,6 +912,8 @@ var InitDemo = function(stationary = false){
 	gl.uniformMatrix4fv(projection_uniform_location, gl.FALSE, projection_matrix);
 	gl.uniform3fv(light_location_uniform_location, light_location);
 	gl.uniform3fv(light_intensity_uniform_location, light_intensity);
+	gl.uniform1f(num_lights_uniform_location, 1);
+
 	gl.uniform1i(is_star_location, 0);
 
 	//
