@@ -1,36 +1,23 @@
 
 <html>
 	<head>
-		<title>Milestone</title>
+		<title>Final</title>
 		<link rel="stylesheet" type="text/css" href="milestone_style.css">
 	</head>
+
 	<body onload="InitDemo();">
-		<h1> Gravitational Pinball: Milestone </h1>
-		<h3 class="sub"> <i> interactive gravity simulation running in real time in webGL </i></h2>
+		<h1> Gravitational Pinball </h1>
+		
+		<h2> Abstract </h2>
 
-		<canvas id="render_canvas" style="width:500; height:500;     padding-left: 0;
-    padding-right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;" >
-			Your Browser Does not support WebGl
-		</canvas>
-		<button onclick="InitDemo();" style="padding-left: 0;
-    padding-right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
-    "> Restart Demo </button>
-		<br />
-		<script src="app.js"></script>
-		<script src="gl-matrix.js"></script>
+		<p> In ancient times, our ancestors looked up to the stars and wondered what lay beyond. In modern times, we need look no farther than our computer screens. Gravity Pinball is a 3D interactactive gravity simulator WebGL that allows users to expereince and play with the cosmic forces that shaped our universe. WebGL is used to render realistic 3D models of planets and stars. Texture and bump mapping add to the detail of these simulated modies by adding fine details which are too small for the mesh. Stars are rendered similarly to planets, but produce light which can fall on and illuminate other objects. All of these objects are controlled by the forces of gravity, which is goverend by Newton's gravity equations. Each pair of objects produces a force on each other object, which causes motion. Kepler's laws of orbital bodies are emergant behavior of this system. Finally, users can interact with the program by rotating or panning the camera, or by adding new planets of any size or mass and shooting them off. </p>
 
-		<h2> Accomplishments </h2>
+		<h2> Technical Approach </h2>
 
-		<ul>
+		<ul style="list-style-type:none;">
 			<li>
-				<h3>WebGL Running</h3>
-				<p>It was important to us that we make our project more or less from scratch. The Ray Tracing 2 projects included a section on WebGL that might well have served as a starting point, but one of the main reasons for choosing this particular focus for our project was out of a desire to really learn the framework from the ground up. As such, a good portion of the first part of our project (which we thankfully allocated time for) was in getting WebGL up and running. The framework has a relativly high upfront cost of on the order of 100 lines of code to render a stationary triangle, so writting and understanding these setup steps was a big hurdle to getting started.
+				<h3>WebGL</h3>
+				<p>It was important to us that we make our project more or less from scratch. Our startercode was composed only of a tutorial<sup>1</sup> we followed for rendering a triangle in WebGL. One large technical hurdle therefore was getting WebGL up and running correctly. Throughout the project we made heavy reference to Mozillas WebGL documentation<sup>2</sup>.</p>
 			</li>
 			<li>
 				<h3>Rendering Spheres</h3>
@@ -38,61 +25,211 @@
 			</li>
 			<li>
 				<h3>Simulating Gravity</h3>
-				<p> The Primary portion of our project involves simulating gravity. In addition to the triangles which make up a sphere, we give spheres a number of other properites including mass. This allows us to to calculate forces which will move the spheres in relation to one another. Because we have each sphere's mass, to calculate the total force we will simply interate through all of the other spheres and calculate the force of gravity between them
+				<p> The bread and butter of our project involves simulating gravity. In addition to the triangles which make up a sphere, we give spheres a number of other properites including mass. This allows us to to calculate forces which will move the spheres in relation to one another. Because we have each sphere's mass, to calculate the total force we will simply interate through all of the other spheres and calculate the force of gravity between them
 				</p>
 
 				<div class="equation">
 					<i>(G * M<sub>1</sub> * M<sub>2</sub>) / r<sup>2</sup></i>
 				</div>
 
-				<p>The direction of this force will of course be the unit vector pointing from the sphere of interests center, to the center of the other sphere. Once we have net force acting on a sphere, we can get its acceleration by simply dividing my it's mass. We can also get a good approximation of it's velocity by taking the difference between it's last positing and it's current position. Through these peices, we can solve for the sphere's new positiong by substituting these values into the formula: 
+				<p>The direction of this force will of course be the unit vector pointing from the sphere of interests center, to the center of the other sphere. Once we have net force acting on a sphere, we can get its acceleration by simply dividing by it's mass. We can also get a good approximation of it's velocity by taking the difference between it's last positing and it's current position. Through these peices, we can solve for the sphere's new positiong by substituting these values into the formula: 
 				</p>
 				<div class="equation">
 					<i>X<sub>new</sub> = X<sub>old</sub> + V*t + A*t<sup>2</sup></i>
 				</div>
 
 				<p> Where the time is simply derived from our framerate. With all of these peices we have a fairly robust gravity simulation from which we can see emergant properties such as planet orbits, and Kepler's laws of planetary motion.</p>
+
+				<p> This method of updating position is similar to Euler's method<sup>3</sup>. This method is know for divergant behavior, so why did it work for us? including the acceleration in our update equation (instead of just using it to update the accelartion) is part of the reason. We also have the advantage of a quick update time. Because our program is running in real time on WebGL, the time between updates is very small, mitigating the issues with divergance. Finally, we are helped by not being dogmatically attached to real workd physics. Because this is Gravity <i>Pinball</i>, we wanted our planets to bounce off of each other on collisions. Normally bouncing such as this would be considered divergant behavior, but since it's exactly what we were after, we can just call it a feature. More on bouncing in a second</p>
 			</li>
 			<li>
 				<h3>Planet Collisions</h3>
 
-				<p> Up until this point, planets are able to clip through each other. In addition to looking strange, this has an unforntunate consequence of two planet centers coming arbitrarily close together and the force between them nearing infinity. In order to rectify this, we impliment a 'bouncing' feature. When two planets clip through one another (that is, a planet is moved such that it the distance between it's center and the center of another planet is less than the sum of their radii), instead of applying an attractive gravitation force between them, we apply a repelling force. <p>
+				<p> Up until this point, planets are able to clip through each other. In addition to looking strange, this has an unforntunate consequence of two planet centers coming arbitrarily close together and the force between them nearing infinity. In order to rectify this, we impliment a 'bouncing' feature. When two planets clip through one another (that is, a planet is moved such that it the distance between it's center and the center of another planet is less than the sum of their radii), instead of applying an attractive gravitation force between them, we apply a repelling force. This has the added benefit of scaling the force of bounces according to how fast planets. The faster they move, the farther inside one another they clip and the larger the repelant force added. <p>
 			</li>
+
+			<li>
+				<h3>User Interaction</h3>
+
+				<p>Because our project is essentially a game, we want to give users a breadth of options and make them easy to use. The first step of this is motion. Our camera is defined by two points and a vector. we have a camera position, a position that the camera is 'looking' at, and the up position of the camera. First we impliment camera rotation. Our camera can rotate around the 'looking at point', initially the origin. From the user's end, this involves clicking and dragging on the screen.<p>
+
+				<p>In order to impliment this, we add event listeners to detect a click on the canvas. If there is a click, we add an event listener for mouse movement, which we will delete as soon as the click is released<sup>4</sup>. We then get the distance from the starting point to the ending point on the canvas, which we split into differance in x and difference in y. Because we know the FOV of our camera, we can convert this to degrees in the up-down direction and degrees in the left-right direction. finally, we rotate the camera around out 'looking at' point by those two degrees to get the new location. This detection is done at every mousemove, so we get smooth motion.</p>
+
+				<p> We also added the ability to pan the camera in any direction. This is simpler than dragging. The direction from our camera to our 'looking at' point defines to forward direction, the camera up vector defines our up direction, and the cross product of these defines the left direction. We then add an event listener for arrow key presses<sup>5</sup> and the 'w' and 's' key, mapping each key to a different direction. We update both the camera position and the 'looking at' position by the same amount.
+
+				<p> With motion implimented, we moved on to the ability to add planets. We wanted this to be intuitive for the user, so we elected to sue the mouse. A button is set to toggle whether mouse clicks in the canvas is set to rotating the camera as we have just seen, or adding a new planet. When the user is in planet adding mode, a click will create a planet in front of them. Clicking a holding will show an expanding circle overlay that indicates how fast we will shoot the planet out. The location of the click defines the angle that it will shoot out, so that you can aim. The overlay is actually an HTML element, dynamically added and edited by javascript in order to change in size. We use an ease function to convert the time the cursor is held into the power with which to shoot the planet. </p>
+
+				<p> Finally, a series of sliders and checkboxes determine various properties of the planet that will be shot. these include the new planets mass, size, as well as if it is a star or not (more on this later). Under the hood, javascript simply reads these values from the HTML and converts them into userful measurments for mass and radius before creating the sphere.</p>
+			</li>
+
+			<li>
+				<h3>Dynamic Lights</h3>
+
+				<p>In class, we saw how to use Blinn-Phong shading with a specified light source. In these project, that was more complicated for two reasons. The first is that our lights are 'stars' which we treat like planets, except that they produce light. This means that our light sources are moving. Second, users have the ability to add stars themselves. This means that there are many light sources, and the total number is subject to change arbitrarily.<p>
+
+				<p> In order to make a light move with a star, we need to keep track of which planets are stars. When we go to move one of these planets, we have to update the light's position as well to be in the center of the planet. Because lights are 'uniforms' in our shaders, this means updating the uniform at each frame. We also have to be sure that we update the star locations <i>before</i> any of the other planets. Otherwise different plaents will be rendered using lights from different locations dependign on if they were before or after the star update. When we make a star, we then have to add its triangles in the opposite direction to the front of our list of triangles.</p>
+
+				<p>Having a dynamically changing number of lights is harder. Instead of doing one render where we take into account all of the lights, we have to do a render for each light individually, then sum up the result to get our final image. This way, we can have only one light uniform as input to our shaders, and change it's value at each new render. Because light is additive, we get the correct result.</p>
+			</li>
+
+			<li>
+				<h3>Texture Mapping</h3>
+
+				<p>To begin working on texture mapping, we consulted an online tutorial about mapping textures in WebGL<sup>6</sup>. While this gave us most of the building blocks we needed to construct our texture mapping, figuring out where each of the specific pieces fit together in our code was more of a struggle.  One issue we especially struggled with was that we were unable to use downloaded images from our local drive, which was not immediately clear.  However, we were able to find some textures online which we could use to map onto our objects.<p>
+				
+				<p>Once we had figured out how to map textures onto our objects, we had to figure out how to assign the coordinate mapping to our spheres.  Using the same general approach that we did to rendering our triangles, we measured the angle away from directly up on our sphere and the angle of rotation around the axis that goes through the sphere vertically.  With these two angles, we mapped the x-axis of our texture map to the first angle and the y-axis to the other angle.</p>
+				
+				<p>Finally, in the fragment shader itself, we kept the Blinn-Phong shading scheme but then multiplied it by the texture map which was created by our texture sampler.  This allowed us to project the texture onto our spheres while still retaining lighting from specific sources, creating a realistic looking simulation.</p>
+			</li>
+
 		</ul>
 
-		<h2> Timeline </h2>
-		<h3 class="sub"> <i>"It was the best of times, it was the worst of times"</i></h3>
+		<h2> Results </h2>
+		<h3 class="sub"> <i> interactive gravity simulation running in real time in webGL </i></h2>
+		
+		<p> Use w to zoom in and s to zoom out.  Use the arrow keys to shift the camera in space.  Click and drag the screen while firing mode is disabled to pan around the screen.  With firing mode enabled, click and release your mouse on the screen to fire a planet into the system.  The longer you hold your mouse before release, the greater initial velocity the planet will have.  Enable is stationary to add a stationary body to the system.  Enable is star to add a star to the system, which will emit light.  Use the Planet Mass and Planet Radius sliders to set the mass and radius of the next planet that you fire into the system.  Use the Camera Movement Speed Slider to set the speed at which your camera shifts.  Click regular demo to start a 3-body system where all planets are affected by each other's gravity.  Click stationary demo to start a 3-body system where the central star is held stationary.</p>
 
-		<p> In some ways our project is ahead os scheduele, while in other it is behind. By this point,we had not planned on effectivly having physics simulation, which we have largely completed. We did, however, plan on completing rendering effects such as dynamic lighting. This has not been completed. Our new timeline prioritzes fucntionallity over these visual effects, which I beleive we be better suited to what we have left to do. By focusing on function over form in the early stages we've been able to better debugg simulations aspects which has lead to easier development. It is also a better reflection of our priorites. Our next steps will be to introduce interactivity (a user should be able to create and 'fire' planets off to see the effects). After this is completed we will move on to visual aspects such as texture mapping and dynamic lighting, followed finally by compiling all of the parts into a package to make it into a game with a goal and a score. </p>
+		<img src="https://images.pexels.com/photos/8892/pexels-photo.jpg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260" crossOrigin="anonymous" id="immy" style="display:none">
+		<div id="canvas_div" align="center"></div>
+		<div id="fire_pointer"> </div>
+		<div id="fire_pointer_small"> </div>
 
-		<div style="text-align:center;"><a href="https://www.youtube.com/watch?v=g0pZAiH-bnM&feature=youtu.be&hd=1" style="font-size:35px;"> VIDEO </a></div>
-		<div style="text-align:center;"><a href="https://docs.google.com/presentation/d/1DgpgvnQyiamcUaq1dkLUnyq8NdPVK4QJvYyoELm4bi0/edit?usp=sharing" style="font-size:35px;"> SLIDES </a></div>
+
+		<canvas id="render_canvas" height="500px" width="500px">
+			Your Browser Does not support WebGl
+		</canvas>
+
+		<br />
+
+		<script src="app.js"></script>
+		<script src="gl-matrix.js"></script>
+
+		<!-- Vertex Shader for WebGL, not to be rendered-->
+		<script id="vertex_shader" type="not-javascript">
+			precision mediump float;
+
+			attribute vec3 vertPosition;
+			attribute vec3 vertColor;
+			attribute vec2 aTexPosition;
+
+			varying vec3 fragColor;
+			varying vec3 fNormal;
+			varying vec3 fPosition;
+			varying vec2 vTexPosition;
+
+			uniform mat4 world_matrix_render;
+			uniform mat4 view_matrix_render;
+			uniform mat4 projection_matrix_render;
+
+			void main(){
+				vTexPosition = aTexPosition;
+				fNormal = vec3(0.0);
+				fPosition = vec3(0.0);
+				fragColor = vertColor;
+				fNormal = vertPosition / length(vertPosition);
+				fPosition = vec3(world_matrix_render * vec4(vertPosition, 1.0));
+
+				gl_Position = projection_matrix_render * view_matrix_render * world_matrix_render * vec4(vertPosition, 1.0);
+			}
+		</script>
+
+		<!-- Fragment Shader for WebGL, not to be rendered-->
+		<script id="fragment_shader" type="not-javascript">
+			precision mediump float;
+
+			uniform vec3 lPosition;
+			uniform vec3 lIntensity;
+			uniform bool isStar;
+			uniform sampler2D u_Sampler;
+			uniform float numLights;
+
+			varying vec3 fragColor;
+			varying vec3 fNormal;
+			varying vec3 fPosition;
+			varying vec2 vTexPosition;
+
+			void main(){
+				gl_FragColor = vec4(fragColor, 1.0);
+
+			    float r = length(lPosition - fPosition);
+			    vec3 l = (lPosition - fPosition) / r;
+			   	vec3 int_vec = vec3(0.0);
+			   	vec3 ambient = vec3(0.4, 0.4, 0.4) / numLights;
+			   	vec3 star_ambient = vec3(5.0, 3.0, 2.0) / numLights;
+
+			   	if(isStar){
+			   		int_vec = star_ambient;
+			   	}
+			   	else{
+				    if(dot(fNormal,l) > 0.0){
+				    	int_vec = ( (lIntensity/(r*r))*dot(fNormal, l) ) + ambient;
+				    }
+				    else{
+				    	int_vec = ambient;
+				    }
+				}
+
+			    gl_FragColor = vec4(int_vec, 1.0)*texture2D(u_Sampler, vTexPosition);
+			}
+		</script>
+		<div id="center_div">
+		<button onclick="InitDemo();" id="restart_button"> Regular Demo </button>
+		<button onclick="InitDemo(true);" id="restart_button"> Stationary Demo </button>
+		Firing Mode: <input type="checkbox" id="firingMode" onclick="switch_add_or_move()">
+		Is Stationary: <input type="checkbox" id="isStationary">
+		Is Star: <input type="checkbox" id="isStar">
+		</br>
+		Planet Radius<input type="range" min="1" max="200" value="30" class="slider" id="planetRadius">
+		Planet Mass<input type="range" min="1" max="300" value="70" class="slider" id="planetMass">
+		</br>
+		Camera Movement Speed<input type="range" min="1" max="100" value="10" class="slider" id="cameraSpeed">
+		</div>
+
+		<table style="list-style-type:none;" align="center">
+			<tr>
+				<td>
+					<img src="images/binary star system.png" width="320px">
+					<figcaption align="middle">Binary Star System</figcaption>
+				</td>
+				<td>
+					<img src="images/high amount system.png" width="320px">
+					<figcaption align="middle">High Volume Star System</figcaption>
+				</td>
+				<td>
+					<img src="images/super star system.png" width="320px">
+					<figcaption align="middle">Super Star System</figcaption>
+				</td>
+			</tr>
+		</table>
+
+		<h2> References </h2>
+		<ol>
+			<li> <a href="https://www.youtube.com/watch?v=kB0ZVUrI4Aw">WebGL Tutorial 01 - Setup and Triangle</a> </li>
+			<li> <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/enable"> Mozilla WebGL documentation </a> </li>
+			<li> <a href="https://cs184.eecs.berkeley.edu/lecture/simulation/slide_025"> CS184 Lecture Slides March 19<sup>th</sup>: Intro to Simulation </a> </li>
+			<li> <a href="https://stackoverflow.com/questions/15505272/javascript-while-mousedown"> StackOverflow: Javascript While MouseDown </a> </li>
+			<li> <a href="https://stackoverflow.com/questions/12886286/addeventlistener-for-keydown-on-canvas"> StackOverflow: addEventListener for keydown on Canvas</a> </li>
+			<li><a href="http://learnwebgl.brown37.net/10_surface_properties/texture_mapping_images.html"> Learn WebGL: Texture Mapping Using Images</a></li>
+
+		</ol>
+		
+		<h2> Contributions </h2>
+		<ul style="width:25%; float:left; margin-left:20%; display:inline-block;">Jacob Green
+			<li>Pinball Idea</li>
+			<li>Power Indicator</li>
+			<li>Object Cannon</li>
+			<li>User Settings and Interaction Controls</li>
+			<li>Texture Mapping</li>
+		</ul>
+		<ul style="width:25%; float:right; margin-right:20%; display:inline-block;">Luke Larson
+			<li>Gravity Simulation Idea</li>
+			<li>Sphere Rendering</li>
+			<li>Gravity Simulation</li>
+			<li>Camera Rotation and Panning</li>
+			<li>Dynamic and Blinn-Phong Lighting</li>
+		</ul>
+
+		<div style="text-align:center;"><a href="https://www.youtube.com/watch?v=dF9lvtO1n7U&feature=youtu.be&hd=1" style="font-size:35px;"> VIDEO </a></div>
+
 	</body>
-	<!-- Vertex Shader for WebGL, not to be rendered-->
-	<script id="vertex_shader" type="not-javascript">
-		precision mediump float;
-
-		attribute vec3 vertPosition;
-		attribute vec3 vertColor;
-		varying vec3 fragColor;
-		uniform mat4 world_matrix_render;
-		uniform mat4 view_matrix_render;
-		uniform mat4 projection_matrix_render;
-
-		void main(){
-			fragColor = vertColor;
-			gl_Position = projection_matrix_render * view_matrix_render * world_matrix_render * vec4(vertPosition, 1.0);
-		}
-	</script>
-
-	<!-- Fragment Shader for WebGL, not to be rendered-->
-	<script id="fragment_shader" type="not-javascript">
-		precision mediump float;
-
-		varying vec3 fragColor;
-
-		void main(){
-			gl_FragColor = vec4(fragColor, 1.0);
-		}
-	</script>
 </html>

@@ -1,5 +1,4 @@
 body{
-	margin: 10%;
 	font-family: arial;
 }
 
@@ -12,13 +11,13 @@ h2{
 	margin-top: 50px;
 }
 
-.sub{
-	color: gray;
+h3{
 	text-align: center;
 }
 
-ul{
-	list-style-type : none;
+.sub{
+	color: gray;
+	text-align: center;
 }
 
 p{
@@ -28,4 +27,46 @@ p{
 .equation{
 	text-align: center;
 	font-size: 20px;
+}
+
+#render_canvas{
+	display: block;
+	padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#fire_pointer{
+	width: 60px;
+	height: 60px;
+	border-radius: 32.5px;
+	position: absolute;
+	display: none;
+	border: 3px solid white;
+}
+
+#fire_pointer_small{
+	width: 1px;
+	height: 1px;
+	border-radius: 32.5px;
+	position: absolute;
+	display: none;
+	background-color: white;
+}
+
+#canvas_div{
+	z-index: 1000;
+	position: absolute;
+	width: 500px;
+	height: 500px;
+	display: block;
+	padding-left: 0;
+    padding-right: 0;
+	left: 50%;
+	margin-left: -250px;
+}
+
+#center_div{
+	text-align: center;
 }

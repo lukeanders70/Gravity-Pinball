@@ -1,4 +1,87 @@
-var make_sphere = function(r, center, triangleVertices, num_lat, num_lon, mass, last_position){
+var mousedownID = -1;  //indicates if mouse is down
+var angle_or_pan = 1; //indicates dragging will angle camera instead of pan
+var angle_mode = true;
+
+var add_triangle = function(v1, v2, v3, c1, c2, c3, t1, t2, t3, star=false){ //if it's a star we will add to the start of the array instead
+	if(!star){
+		//vertex 1
+		triangleVertices.push(v1[0])
+		triangleVertices.push(v1[1])
+		triangleVertices.push(v1[2])
+
+		triangleVertices.push(c1[0])
+		triangleVertices.push(c1[1])
+		triangleVertices.push(c1[2])
+
+		triangleVertices.push(t1[0])
+		triangleVertices.push(t1[1])
+
+
+		//vertex 2
+		triangleVertices.push(v2[0])
+		triangleVertices.push(v2[1])
+		triangleVertices.push(v2[2])
+		
+		triangleVertices.push(c2[0])
+		triangleVertices.push(c2[1])
+		triangleVertices.push(c2[2])
+
+		triangleVertices.push(t2[0])
+		triangleVertices.push(t2[1])
+
+		//vertex 3
+		triangleVertices.push(v3[0])
+		triangleVertices.push(v3[1])
+		triangleVertices.push(v3[2])
+		
+		triangleVertices.push(c3[0])
+		triangleVertices.push(c3[1])
+		triangleVertices.push(c3[2])
+
+		triangleVertices.push(t3[0])
+		triangleVertices.push(t3[1])
+
+	}
+	else{
+		//vertex 3
+		triangleVertices.unshift(t3[1])
+		triangleVertices.unshift(t3[0])
+
+		triangleVertices.unshift(c3[2])
+		triangleVertices.unshift(c3[1])
+		triangleVertices.unshift(c3[0])
+
+		triangleVertices.unshift(v3[2])
+		triangleVertices.unshift(v3[1])
+		triangleVertices.unshift(v3[0])
+
+		//vertex 2
+		triangleVertices.unshift(t2[1])
+		triangleVertices.unshift(t2[0])
+
+		triangleVertices.unshift(c2[2])
+		triangleVertices.unshift(c2[1])
+		triangleVertices.unshift(c2[0])
+
+		triangleVertices.unshift(v2[2])
+		triangleVertices.unshift(v2[1])
+		triangleVertices.unshift(v2[0])
+
+		//vertex 1
+		triangleVertices.unshift(t1[1])
+		triangleVertices.unshift(t1[0])
+
+		triangleVertices.unshift(c1[2])
+		triangleVertices.unshift(c1[1])
+		triangleVertices.unshift(c1[0])
+
+		triangleVertices.unshift(v1[2])
+		triangleVertices.unshift(v1[1])
+		triangleVertices.unshift(v1[0])
+	}
+}
+
+var make_sphere = function(r, center, num_lat, num_lon, mass, last_position, moving=true, star=false){
 	var num_vertices = 0
 
 	for (let lat = 1.0; lat <= num_lat + 1.0; ++lat) {
@@ -10,6 +93,8 @@ var make_sphere = function(r, center, triangleVertices, num_lat, num_lon, mass, 
 			let y00 = (r * Math.cos(a1));
 			let z00 = (r * Math.sin(a1) * Math.cos(a2));
 
+			let u1 = a1 / Math.PI
+			let v1 = a2 / (Math.PI * 2.0)
 
 			let a3 = (lat / (num_lat + 1)) * Math.PI; //radians away from straight up
 			let a4 = ((lon + 1.0)/ (num_lon)) * Math.PI * 2.0; //radians aorund circle
@@ -18,6 +103,8 @@ var make_sphere = function(r, center, triangleVertices, num_lat, num_lon, mass, 
 			let y10 = (r * Math.cos(a3));
 			let z10 = (r * Math.sin(a3) * Math.cos(a4));
 
+			let u2 = a3 / Math.PI
+			let v2 = a4 / (Math.PI * 2.0)
 
 			let a5 = ((lat-1.0) / (num_lat + 1)) * Math.PI; //radians away from straight up
 			let a6 = ((lon + 1.0)/ (num_lon)) * Math.PI * 2.0; //radians aorund circle
@@ -25,6 +112,9 @@ var make_sphere = function(r, center, triangleVertices, num_lat, num_lon, mass, 
 			let x11 = (r * Math.sin(a6) * Math.sin(a5));
 			let y11 = (r * Math.cos(a5));
 			let z11 = (r * Math.sin(a5) * Math.cos(a6));
+
+			let u3 = a5 / Math.PI
+			let v3 = a6 / (Math.PI * 2.0)
 
 
 			let a7 = ((lat-1.0) / (num_lat + 1)) * Math.PI; //radians away from straight up
@@ -34,51 +124,11 @@ var make_sphere = function(r, center, triangleVertices, num_lat, num_lon, mass, 
 			let y01 = (r * Math.cos(a7));
 			let z01 = (r * Math.sin(a7) * Math.cos(a8));
 
-			triangleVertices.push(x00)
-			triangleVertices.push(y00)
-			triangleVertices.push(z00)
-			triangleVertices.push(1.0)
-			triangleVertices.push(1.0)
-			triangleVertices.push(0.0)
+			let u4 = a7 / Math.PI
+			let v4 = a8 / (Math.PI * 2.0)
 
-			triangleVertices.push(x10)
-			triangleVertices.push(y10)
-			triangleVertices.push(z10)
-			triangleVertices.push(0.7)
-			triangleVertices.push(0.0)
-			triangleVertices.push(0.3)
-
-
-			triangleVertices.push(x01)
-			triangleVertices.push(y01)
-			triangleVertices.push(z01)
-			triangleVertices.push(1.0)
-			triangleVertices.push(0.0)
-			triangleVertices.push(0.0)
-
-
-			triangleVertices.push(x10)
-			triangleVertices.push(y10)
-			triangleVertices.push(z10)
-			triangleVertices.push(0.0)
-			triangleVertices.push(1.0)
-			triangleVertices.push(0.0)
-
-
-			triangleVertices.push(x11)
-			triangleVertices.push(y11)
-			triangleVertices.push(z11)
-			triangleVertices.push(0.0)
-			triangleVertices.push(0.0)
-			triangleVertices.push(1.0)
-
-
-			triangleVertices.push(x01)
-			triangleVertices.push(y01)
-			triangleVertices.push(z01)
-			triangleVertices.push(0.0)
-			triangleVertices.push(0.3)
-			triangleVertices.push(0.7)
+			add_triangle([x00,y00,z00],[x10,y10,z10],[x01,y01,z01],[1.0,1.0,0.0],[0.7,0.0,0.3],[1.0,0.0,0.0], [u1, v1], [u2, v2], [u4,v4], star);
+			add_triangle([x10,y10,z10],[x11,y11,z11],[x01,y01,z01],[0.0,1.0,0.0],[0.0,0.0,1.0],[0.0,0.3,0.7], [u2, v2], [u3, v3], [u4, v4], star);
 
 			num_vertices += 6;
 
@@ -89,14 +139,52 @@ var make_sphere = function(r, center, triangleVertices, num_lat, num_lon, mass, 
 					center:center, 
 					num_vertices:num_vertices,
 					mass:mass,
-					last_position:last_position
+					last_position:last_position,
+					new_center:center,
+					moving:moving,
+					star:star
 				};
 	return object;
 };
 
+
+////////////////////////////////////////////////////
+//////////// ALGEBRA HELPERS //////////////////////
+//////////////////////////////////////////////////
+
+var mat_vec_mul = function(m, v){
+	return([  v_dot([m[0], m[1], m[2]],v), v_dot([m[3], m[4], m[5]],v), v_dot([m[6], m[7], m[8]],v)  ])
+}
+
+var cross = function(out, a, b) {
+  var ax = a[0],
+      ay = a[1],
+      az = a[2];
+  var bx = b[0],
+      by = b[1],
+      bz = b[2];
+
+  out[0] = ay * bz - az * by;
+  out[1] = az * bx - ax * bz;
+  out[2] = ax * by - ay * bx;
+  return out;
+}
+
 var v_add = function(v1, v2){
 	return [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]];
 };
+
+var v_add_nine = function(v1, v2, v3){
+	return [v1[0] + v2[0] + v3[0], 
+			v1[1] + v2[1] + v3[1], 
+			v1[2] + v2[2] + v3[2], 
+			v1[3] + v2[3] + v3[3], 
+			v1[4] + v2[4] + v3[4],
+			v1[5] + v2[5] + v3[5],
+			v1[6] + v2[6] + v3[6],
+			v1[7] + v2[7] + v3[7], 
+			v1[8] + v2[8] + v3[8]];
+}
 
 var v_sub = function(v1, v2){
 	return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]];
@@ -107,35 +195,99 @@ var v_div = function(v, n){
 }
 
 var v_mul = function(v, n){
-	return [v[0]*n, v[1]*n, v[2]*n];
+	if(v.length == 3){
+		return [v[0]*n, v[1]*n, v[2]*n];
+	}
+	else{
+		return [v[0]*n, v[1]*n, v[2]*n, v[3]*n, v[4]*n, v[5]*n, v[6]*n, v[7]*n, v[8]*n];
+	}
 }
 
-var distanct = function(v1, v2){
+function v_rotateY(out, a, b, c) {
+  var p = [],
+      r = [];
+  //Translate point to the origin
+  p[0] = a[0] - b[0];
+  p[1] = a[1] - b[1];
+  p[2] = a[2] - b[2];
+
+  //perform rotation
+  r[0] = p[2] * Math.sin(c) + p[0] * Math.cos(c);
+  r[1] = p[1];
+  r[2] = p[2] * Math.cos(c) - p[0] * Math.sin(c);
+
+  //translate to correct position
+  out[0] = r[0] + b[0];
+  out[1] = r[1] + b[1];
+  out[2] = r[2] + b[2];
+
+  return out;
+}
+
+
+var distance = function(v1, v2){
 	var dist = Math.sqrt(Math.pow(v1[0]-v2[0], 2) + Math.pow(v1[1]-v2[1],2) + Math.pow(v1[2]-v2[2], 2));
 	return dist
 }
 
 var direction = function(v1, v2){
-	return v_div(v_sub(v2,v1),distanct(v2, v1))
+	return v_div(v_sub(v2,v1),distance(v2, v1))
 }
+
+var v_dot = function(v1, v2){
+	return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+};
+
+var v_outer = function(v1, v2) {
+	return [v1[0]*v2[0], v1[0]*v2[1], v1[0]*v2[2], v1[1]*v2[0], v1[1]*v2[1], v1[1]*v2[2], v1[2]*v2[0], v1[2]*v2[1], v1[2]*v2[2]]
+}
+
+var find_fe = function(origin, point){
+	let vec = v_sub(point, origin);
+	vec[1] = 0.0 //project onto xz plane
+	if(vec[2] <=0){
+		return Math.acos(v_dot(vec,[1.0,0.0,0.0]) / distance(vec, [0.0,0.0,0.0]));
+	}else{
+		return 2*Math.PI - Math.acos(v_dot(vec,[1.0,0.0,0.0]) / distance(vec, [0.0,0.0,0.0]));
+	}
+}
+
+var find_theta = function(origin, point){
+	let vec = v_sub(point, origin);
+	return Math.acos(v_dot(vec,[0.0,1.0,0.0]) / distance(vec, [0.0,0.0,0.0]));
+}
+var unit_from_theta_fe = function(theta, fe){
+	var vec =[Math.sin(theta), Math.cos(theta), 0.0];
+	var ret = [0.0,0.0,0.0]
+	v_rotateY(ret, vec, [0.0,1.0,0.0], fe);
+	return ret;
+}
+
+var rotate_around_axis = function(a, n) {
+	return v_add_nine(v_mul([1, 0, 0, 0, 1, 0, 0, 0, 1], Math.cos(a)), v_mul(v_outer(n, n), (1.0 - Math.cos(a))), v_mul([0, -n[2], n[1], n[2], 0, -n[0], -n[1], n[0], 0], Math.sin(a)));
+}
+
+/////////////////////////////////////////////////
+//////// PHYSICS SIMULATION ////////////////////
+///////////////////////////////////////////////
 
 var calculate_forces = function(object, objects){
 	object.forces = [0.0,0.0,0.0];
 	for(var obj_ind = 0; obj_ind < objects.length; ++obj_ind){
 		let to_compare = objects[obj_ind];
 		if(object != to_compare){
-			let force_magnitude = (object.mass * to_compare.mass) / Math.pow(distanct(object.center, to_compare.center), 2);
+			let force_magnitude = (object.mass * to_compare.mass) / Math.pow(distance(object.center, to_compare.center), 2);
 			let force_direction = direction(object.center, to_compare.center);
 
-			if(distanct(object.center, to_compare.center) > object.radius + to_compare.radius){
+			if(distance(object.center, to_compare.center) > object.radius + to_compare.radius){
 				object.forces[0] += force_magnitude * force_direction[0];
 				object.forces[1] += force_magnitude * force_direction[1];
 				object.forces[2] += force_magnitude * force_direction[2];
 			}
 			else{
-				object.forces[0] += force_magnitude * -1*force_direction[0];
-				object.forces[1] += force_magnitude * -1*force_direction[1];
-				object.forces[2] += force_magnitude * -1*force_direction[2];
+				object.forces[0] += force_magnitude * -0.5*force_direction[0];
+				object.forces[1] += force_magnitude * -0.5*force_direction[1];
+				object.forces[2] += force_magnitude * -0.5*force_direction[2];
 			}
 
 		}
@@ -148,15 +300,494 @@ var calculate_new_position = function(object, delta_t){
 	if(object.mass != 0.0){
 		acceleration = v_div(object.forces, object.mass);
 	}
-	console.log(velocity, object.forces);
 	return v_add(v_add(object.center, velocity), v_mul(acceleration, delta_t*delta_t));
 };
 
+var ease = function(t){
+	return t * t * (3.0 - 2.0 * t);
+}
 
-var InitDemo = function(){
 
-	var canvas = document.getElementById('render_canvas');
-	var gl = canvas.getContext('webgl');
+/////////////////////////////////////////////////
+//////////////// UI HELPERS ////////////////////
+///////////////////////////////////////////////
+var change_light = function(loc, intensity){
+	light_location = loc
+	light_intensity = intensity
+	gl.uniform3fv(light_location_uniform_location, loc);
+	gl.uniform3fv(light_intensity_uniform_location, intensity);
+}
+
+var switch_to_pan = function(){
+	angle_or_pan = -1;
+}
+
+var switch_to_angle = function(){
+	angle_or_pan = 1;
+}
+
+var switch_add_or_move = function() {
+	angle_mode = !angle_mode;
+}
+
+var add_planet = function(x_angle = 0, y_angle = 0, power = 0.05){ //rotate_around_axis(a, n)
+	if(power < 0.01) {
+		power = 0.01;
+	}
+	let direction = v_div(v_sub(cam_location,cam_look_at) , distance(cam_location,cam_look_at) );
+	var x_rotate_matrix = rotate_around_axis(x_angle, camera_up);
+	var camera_horizontal = vec3
+	cross(camera_horizontal, camera_up, direction)
+	var y_rotate_matrix = rotate_around_axis(y_angle, camera_horizontal);
+
+	direction = mat_vec_mul(x_rotate_matrix, direction)
+	direction = mat_vec_mul(y_rotate_matrix, direction)
+	
+	planetRadius = document.getElementById("planetRadius").value / 100;
+	planetMass = document.getElementById("planetMass").value / 100;
+	
+	stationary = document.getElementById("isStationary").checked
+	star = document.getElementById("isStar").checked
+	//                                r,                            center,                       num_lat   num_lon  mass                                     last_position                                            moving=true  star=false
+	var sphere1 = make_sphere(planetRadius, v_add(cam_location, v_mul(direction, -planetRadius * 2)), 8.0, 16.0, planetMass, v_add(v_add(cam_location, v_mul(direction, power)), v_mul(direction, -planetRadius * 2)), !stationary, star); //r, center, num_lat, num_lon, mass, last_position, can move
+	if(star){
+		scene_objects.unshift(sphere1)
+	}else{
+		scene_objects.push(sphere1);
+	}
+	assign_objects();
+}
+
+//rotate camera around origin theta degrees down from starting point, and fe degrees left from starting point
+var update_view_angle = function(theta, fe){
+	let current_fe = find_fe(cam_look_at, cam_location);
+	let current_theta = find_theta(cam_look_at, cam_location);
+
+	let new_theta = current_theta + theta;
+	let new_fe = current_fe + fe;
+	if(new_theta > Math.PI || new_theta < .05){
+		new_theta = current_theta
+	}
+	let new_direction = unit_from_theta_fe(new_theta, new_fe);
+	cam_location = v_add(cam_look_at, v_mul(new_direction, cam_radius));
+	camera_up = unit_from_theta_fe((Math.PI / 2.0) - new_theta, Math.PI + new_fe);
+	mat4.lookAt(view_matrix, cam_location, cam_look_at, camera_up);
+	gl.uniformMatrix4fv(view_uniform_location, gl.FALSE, view_matrix);
+}
+
+function mousedown(event) {
+	if(mousedownID==-1)  //Prevent multimple loops!
+
+		if(angle_mode){ // we will angle our viewpoint
+			mousedownID = 1;
+
+			original_x = event.clientX; 
+			original_y = event.clientY;
+			last_x_position = original_x;
+			last_y_position = original_y;
+			if(angle_or_pan == 1){
+				canvas_div.addEventListener("mousemove", drag_angle);
+			}else{
+				canvas_div.addEventListener("mousemove", drag_pan);
+			}
+		} else{ //we will shoot a planet
+			mousedownID = 1;
+			mousedown_time = new Date();
+			mouse_x = event.clientX;
+			mouse_y = event.clientY + window.pageYOffset;
+			canvas_div.addEventListener("mousemove", target_move);
+		
+			var pointer = document.getElementById("fire_pointer");
+			pointer.style.left = mouse_x - 30 + "px";
+			pointer.style.top = mouse_y - 30 + "px";
+			pointer.style.display = "block"
+
+			var small_pointer = document.getElementById("fire_pointer_small");
+			small_pointer.style.width = "0px";
+			small_pointer.style.height = "0px";
+			small_pointer.style.left = mouse_x + "px";
+			small_pointer.style.top = mouse_y + "px";
+			small_pointer.style.display = "block"
+
+			intervalTarget = setInterval(whilemousedown, 50);
+		}
+}
+function mouseup(event) {
+	if(mousedownID!=-1) {  //Only stop if exists
+		clearInterval(mousedownID);
+		mousedownID=-1;
+		if(angle_mode){
+			if(angle_or_pan == 1){
+				canvas_div.removeEventListener("mousemove", drag_angle);
+			}else{
+				canvas_div.removeEventListener("mousemove", drag_pan);	
+			}
+		} else{
+			clearInterval(intervalTarget);
+			var element = document.getElementById("fire_pointer");
+			element.style.display = "None"
+			var element = document.getElementById("fire_pointer_small");
+			element.style.display = "None"
+			canvas_div.removeEventListener("mousemove", target_move);	
+
+			mouseup_time = new Date();
+			var power = (mouseup_time - mousedown_time) / 2000;
+			if(power > 1) {
+				power = 1;
+			}
+			if(power < 0) {
+				power = 0;
+			}
+			let x = event.clientX - canvas.offsetLeft + window.pageXOffset; 
+			let y = event.clientY - canvas.offsetTop + window.pageYOffset;
+			console.log(event.clientX);
+			console.log(event.clientY);
+			var x_angle = ((x/canvas.clientWidth) * FOV) - (FOV/2);
+			var y_angle = ((y/canvas.clientHeight) * FOV) - (FOV/2);
+			add_planet(-x_angle, -y_angle, ease(power) / 4);
+		}
+	}
+
+}
+
+function whilemousedown(){
+	var t = new Date();
+	var power = (t - mousedown_time) / 2000;
+	if(power > 1) {
+		power = 1;
+	}
+	if(power < 0) {
+		power = 0;
+	}
+	power = ease(power)
+
+	var pointer = document.getElementById("fire_pointer");
+	pointer.style.left = mouse_x - 30 + "px";
+	pointer.style.top = mouse_y - 30 + "px";
+	
+	var small_pointer = document.getElementById("fire_pointer_small");
+	small_pointer.style.width = power*62 + "px";
+	small_pointer.style.height = power*62 + "px";
+	small_pointer.style.left = mouse_x - power*30 + 2 + "px";
+	small_pointer.style.top = mouse_y - power*30 + 2 + "px";
+	small_pointer.style.display = "block"
+}
+
+function keydown(event) {
+	
+	speed = document.getElementById("cameraSpeed").value / 100;
+
+	if(event.keyCode == 37){ //left arrow
+		left(speed);
+	}
+	if(event.keyCode == 38){ //up arrow
+		event.preventDefault()
+		up(speed);
+	}
+	if(event.keyCode == 39){ //right arrow
+		right(speed);
+	}
+	if(event.keyCode == 40){ //down arrow
+		event.preventDefault()
+		down(speed);
+	}
+	if(event.keyCode == 87){ //w key
+		forward(speed);
+	}
+	if(event.keyCode == 83){ //s key
+		backward(speed);
+	}
+
+}
+
+function target_move() {
+	mouse_x = event.clientX;
+	mouse_y = event.clientY + window.pageYOffset;
+}
+
+function drag_angle() {
+   let x = event.clientX; 
+   let y = event.clientY;
+
+   if(original_x < x & !(last_x_position < x) || original_x > x & !(last_x_position > x)){
+   		original_x = last_x_position;
+   }
+   if(original_y < y & !(last_y_position < y) || original_y > y & !(last_y_position > y)){
+   		original_y = last_y_position;
+   }
+   let x_dis = original_x - x; // left right
+   let y_dis = original_y - y; // top bottom
+
+   let fe = (x_dis / canvas.clientWidth)*FOV*.25;
+   let theta = (y_dis / canvas.clientHeight)*FOV*.25;
+   update_view_angle(theta, fe);
+
+   last_x_position = x;
+   last_y_position = y;
+}
+
+function drag_pan(){
+   let x = event.clientX; 
+   let y = event.clientY;
+
+   if(original_x < x & !(last_x_position < x) || original_x > x & !(last_x_position > x)){
+   		original_x = last_x_position;
+   }
+   if(original_y < y & !(last_y_position < y) || original_y > y & !(last_y_position > y)){
+   		original_y = last_y_position;
+   }
+   let x_dis = original_x - x; // left right
+   let y_dis = original_y - y; // top bottom
+
+   var left_right_dir = [0.0,0.0,0.0];
+   cross(left_right_dir, camera_up, v_sub(cam_look_at, cam_location));
+   left_right_dir = v_div(left_right_dir, distance([0.0,0.0,0.0], left_right_dir))
+   var up_down_dir = v_div(camera_up, distance([0.0,0.0,0.0], camera_up));
+
+   var direction_to_move = v_add(v_mul(left_right_dir, (x_dis/ canvas.clientWidth)),v_mul(up_down_dir, (y_dis/canvas.clientHeight))); 
+   update_view_pan(direction_to_move[0], direction_to_move[1], direction_to_move[2]);
+}
+
+function forward(amount){
+	let forward_direction = v_sub(cam_look_at, cam_location);
+	forward_direction = v_div(forward_direction, distance(forward_direction, [0.0,0.0,0.0]));
+	update_view_pan(amount*forward_direction[0], amount*forward_direction[1], amount*forward_direction[2])
+}
+
+function backward(amount){
+	let forward_direction = v_sub(cam_look_at, cam_location);
+	forward_direction = v_div(forward_direction, distance(forward_direction, [0.0,0.0,0.0]));
+	update_view_pan(amount*-1.0* forward_direction[0], amount*-1.0*forward_direction[1], amount*-1.0*forward_direction[2])
+}
+
+function left(amount){
+   var left_right_dir = [0.0,0.0,0.0];
+   cross(left_right_dir, camera_up, v_sub(cam_look_at, cam_location));
+   left_right_dir = v_div(left_right_dir, distance([0.0,0.0,0.0], left_right_dir));
+   update_view_pan(amount*left_right_dir[0], amount*left_right_dir[1], amount*left_right_dir[2]);
+}
+
+function right(amount){
+   var left_right_dir = [0.0,0.0,0.0];
+   cross(left_right_dir, camera_up, v_sub(cam_look_at, cam_location));
+   left_right_dir = v_div(left_right_dir, distance([0.0,0.0,0.0], left_right_dir));
+   update_view_pan(amount*-1.0*left_right_dir[0], amount*-1.0*left_right_dir[1], amount*-1.0*left_right_dir[2]);
+
+}
+
+function up(amount){
+   var up_down_dir = camera_up;
+   up_down_dir = v_div(up_down_dir, distance([0.0,0.0,0.0], up_down_dir));
+   update_view_pan(amount*up_down_dir[0], amount*up_down_dir[1], amount*up_down_dir[2]);
+
+}
+
+function down(amount){
+   var up_down_dir = camera_up;
+   up_down_dir = v_div(up_down_dir, distance([0.0,0.0,0.0], up_down_dir));
+   update_view_pan(amount*-1.0*up_down_dir[0], amount*-1.0*up_down_dir[1], amount*-1.0*up_down_dir[2]);
+
+}
+function update_view_pan(x, y, z) {
+	cam_look_at = v_add(cam_look_at, [x,y,z]);
+
+	let current_fe = find_fe(cam_look_at, cam_location);
+	let current_theta = find_theta(cam_look_at, cam_location);
+
+	let direction = unit_from_theta_fe(current_theta, current_fe);
+	cam_location = v_add(cam_look_at, v_mul(direction, cam_radius));
+	mat4.lookAt(view_matrix, cam_location, cam_look_at, camera_up);
+	gl.uniformMatrix4fv(view_uniform_location, gl.FALSE, view_matrix);
+}
+//////////////////////////////////////////////
+//////////// WEBGL BASE //////////////////////
+/////////////////////////////////////////////
+
+var assign_objects = function(){
+	var traingleVertexBufferObject = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, traingleVertexBufferObject);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.STATIC_DRAW);
+
+	var positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
+	var colorAttribLocation = gl.getAttribLocation(program, 'vertColor');
+	var textureAttribLocation = gl.getAttribLocation(program, 'aTexPosition');
+
+	gl.vertexAttribPointer(
+		positionAttribLocation, //Attribute location
+		3, //number of elements per attribute
+		gl.FLOAT, //type of elements
+		gl.FALSE, //no idea what this does
+		8 * Float32Array.BYTES_PER_ELEMENT, //Size of an individual vertex
+		0 // Offset from the beginning of a Math.single vertex to this attribute 
+	);
+
+	gl.vertexAttribPointer(
+		colorAttribLocation, //Attribute location
+		3, //number of elements per attribute
+		gl.FLOAT, //type of elements
+		gl.FALSE, //no idea what this does
+		8 * Float32Array.BYTES_PER_ELEMENT, //Size of an individual vertex
+		3 * Float32Array.BYTES_PER_ELEMENT // Offset from the beginning of a Math.single vertex to this attribute 
+	);
+
+	gl.vertexAttribPointer(
+		textureAttribLocation, //Attribute location
+		2, //number of elements per attribute
+		gl.FLOAT, //type of elements
+		gl.FALSE, //no idea what this does
+		8 * Float32Array.BYTES_PER_ELEMENT, //Size of an individual vertex
+		6 * Float32Array.BYTES_PER_ELEMENT // Offset from the beginning of a Math.single vertex to this attribute 
+	);
+
+	gl.enableVertexAttribArray(positionAttribLocation);
+	gl.enableVertexAttribArray(colorAttribLocation);
+	gl.enableVertexAttribArray(textureAttribLocation);
+
+}
+
+/**
+ * Create and initialize a texture object
+ * @param my_image Image A JavaScript Image object that contains the
+ *                       texture map image.
+ * @returns {WebGLTexture} A "texture object"
+ * @private
+ */
+function createTexture(my_image, imCanvas) {
+	
+	var context = imCanvas.getContext("2d");
+	context.drawImage(my_image, 0, 0);
+	var imageData = context.getImageData(0, 0, 1024, 1024);
+	
+	// Create a new "texture object"
+	var texture_object = gl.createTexture();
+
+	// Make the "texture object" be the active texture object. Only the
+	// active object can be modified or used. This also declares that the
+	// texture object will hold a texture of type gl.TEXTURE_2D. The type
+	// of the texture, gl.TEXTURE_2D, can't be changed after this initialization.
+	gl.bindTexture(gl.TEXTURE_2D, texture_object);
+
+	// Set parameters of the texture object. We will set other properties
+	// of the texture map as we develop more sophisticated texture maps.
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+	// Tell gl to flip the orientation of the image on the Y axis. Most
+	// images have their origin in the upper-left corner. WebGL expects
+	// the origin of an image to be in the lower-left corner.
+	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+
+	// Store in the image in the GPU's texture object
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, imageData);
+	
+	// Make the "texture unit" 0 be the active texture unit.
+	gl.activeTexture(gl.TEXTURE0);
+
+	// Make the texture_object be the active texture. This binds the
+	// texture_object to "texture unit" 0.
+	gl.bindTexture(gl.TEXTURE_2D, texture_object);
+
+	// Tell the shader program to use "texture unit" 0
+	gl.uniform1i(program.u_Sampler, 0);
+}
+
+var runtime_loop = function() {
+
+	var identity_matrix = new Float32Array(16);
+	mat4.identity(identity_matrix);
+	gl.enable(gl.DEPTH_TEST);
+	gl.depthFunc(gl.LEQUAL);
+	var stop = false;
+
+	// if we restart the demo, the old loop will keep running and our simulation will go twice as fast
+	// in order to combat this, we add this variable which stops the current simulation
+	document.getElementById("restart_button").addEventListener("click", function(){
+		stop = true;
+		console.log("false")
+	});
+
+	var loop = function() {
+
+		gl.clearColor(0.0, 0.0, 0.0, 1.0);
+		gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+
+		gl.disable(gl.BLEND);
+		lights = [[0.0,0.0,0.0]]
+		
+		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
+
+			gl.enable(gl.DEPTH_TEST);
+			gl.depthFunc(gl.LEQUAL);
+
+			let object = scene_objects[object_ind];
+			calculate_forces(object, scene_objects);
+			let old_center = object.center;
+			object.new_center = calculate_new_position(object, .1);
+			object.last_position = old_center;
+
+			if(object.star){
+				lights.push(object.new_center);
+			}
+		}
+
+		gl.enable(gl.BLEND);
+		gl.blendFunc(gl.ONE, gl.ONE);
+		gl.uniform1f(num_lights_uniform_location, lights.length - 1);
+
+		for(var light_ind = 0; light_ind < lights.length; ++light_ind){
+
+			var vertices_so_far = 0
+			light = lights[light_ind]
+			if(light_ind == 0){
+				gl.depthMask(true)
+				gl.colorMask(false, false, false, false);
+			}else{
+				gl.colorMask(true, true, true, true);
+				gl.depthMask(false)
+				change_light(light, [20, 15, 10])
+			}
+			gl.clearColor(0.0, 0.0, 0.0, 1.0);
+			gl.clear(gl.DEPTH_BUFFER_BIT);
+
+			for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
+
+				let object = scene_objects[object_ind];
+				if(object.star){
+					gl.uniform1i(is_star_location, 1);
+				} else{
+					gl.uniform1i(is_star_location, 0);
+				}
+
+				//			      input         original matrix  vector to translate by
+				mat4.translate(world_matrix, identity_matrix, object.center);
+				gl.uniformMatrix4fv(world_uniform_location, gl.FALSE, world_matrix);
+
+				gl.drawArrays(gl.TRIANGLES, vertices_so_far , object.num_vertices);
+				vertices_so_far += object.num_vertices;
+			}
+
+		}
+
+		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
+			if(scene_objects[object_ind].moving){ 
+				scene_objects[object_ind].center = scene_objects[object_ind].new_center;
+			}
+		}
+
+		if(!stop){
+			requestAnimationFrame(loop);
+		}
+	};
+
+	if(!stop){
+		requestAnimationFrame(loop);
+	}
+}
+
+var InitDemo = function(stationary = false){
+
+	canvas = document.getElementById('render_canvas');
+	canvas_div = document.getElementById("canvas_div");
+	gl = canvas.getContext('webgl');
 
 	if (!gl){
 		console.log("Your browser does not support WebGL");
@@ -189,7 +820,7 @@ var InitDemo = function(){
 		return;
 	}
 
-	var program = gl.createProgram();
+	program = gl.createProgram();
 	gl.attachShader(program, vertexShader);
 	gl.attachShader(program, fragmentShader);
 	gl.linkProgram(program)
@@ -202,122 +833,104 @@ var InitDemo = function(){
 		consol.error("ERROR validating program!", gl.getProgramInfoLog(program));
 		return;
 	}
-
+	
+	var image0 = new Image(1024, 1024);
+	var imCanvas = document.createElement("canvas");
+	imCanvas.style.display = "none";
+	imCanvas.width = 1024;
+	imCanvas.height = 1024;
+	document.body.appendChild(imCanvas);
+	
 	//
 	// create buffer
 	//
-	var triangleVertices = [];
-	var scene_objects = [];
 
-	var sphere1 = make_sphere(.5, [0.5,0.0,0.0], triangleVertices, 8.0, 16.0, .7, [0.5,0.0,0.0]);
-	scene_objects.push(sphere1);
+	triangleVertices = []; // these will be global
+	scene_objects = []; // these will be global
+	stop = true;
 
-	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], triangleVertices, 8.0, 8.0, .05, [-1.5,0.0,.06]);
+	var sphere1 = make_sphere(.5, [0.0,0.0,0.0], 8.0, 16.0, .7, [0.0,0.0,0.0], !stationary, true);
+	scene_objects.unshift(sphere1);
+
+	var sphere2 = make_sphere(.25, [-1.5,0.0,0.0], 8.0, 8.0, .05, [-1.5,0.0,.08]);
 	scene_objects.push(sphere2);
 
-	var sphere2 = make_sphere(.15, [3.5,0.0,0.0], triangleVertices, 8.0, 8.0, .02, [3.5,0.0,-.04]);
-	scene_objects.push(sphere2);
+	var sphere3 = make_sphere(.15, [3.5,0.0,0.0], 8.0, 8.0, .02, [3.5,0.0,-.04]);
+	scene_objects.push(sphere3); 
 
-
-
-
-/*	var triangleVertices = 
-	[ // X  ,  Y  ,  Z     R,   G,   B
-		 0.0,  0.5, 0.0,   1.0, 1.0, 0.0,
-		-0.5, -0.5, 0.0,   0.7, 0.0, 1.0,
-		 0.5, -0.5, 0.0,   0.0, 0.7, 1.0,
-
-		-0.7,  0.2, 0.0,   1.0, 1.0, 0.0,
-		-0.9, -0.2, 0.0,   0.7, 0.0, 1.0,
-		-0.5, -0.2, 0.0,   0.0, 0.7, 1.0 
-	];*/
-
-	var traingleVertexBufferObject = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, traingleVertexBufferObject);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.STATIC_DRAW);
-
-	var positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
-	var colorAttribLocation = gl.getAttribLocation(program, 'vertColor');
-
-	gl.vertexAttribPointer(
-		positionAttribLocation, //Attribute location
-		3, //number of elements per attribute
-		gl.FLOAT, //type of elements
-		gl.FALSE, //no idea what this does
-		6 * Float32Array.BYTES_PER_ELEMENT, //Size of an individual vertex
-		0 // Offset from the beginning of a Math.single vertex to this attribute 
-	);
-
-	gl.vertexAttribPointer(
-		colorAttribLocation, //Attribute location
-		3, //number of elements per attribute
-		gl.FLOAT, //type of elements
-		gl.FALSE, //no idea what this does
-		6 * Float32Array.BYTES_PER_ELEMENT, //Size of an individual vertex
-		3 * Float32Array.BYTES_PER_ELEMENT // Offset from the beginning of a Math.single vertex to this attribute 
-	);
-
-	gl.enableVertexAttribArray(positionAttribLocation);
-	gl.enableVertexAttribArray(colorAttribLocation);
-
+	assign_objects();
 	// tell open GL what program we're uMath.sing
 	gl.useProgram(program);
 
+	program.u_Sampler = gl.getUniformLocation(program, "u_Sampler");
+
+
+	image0.onload = createTexture(document.getElementById("immy"), imCanvas);
+
+
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+
 
 	//creating pointers
-	var world_uniform_location = gl.getUniformLocation(program, 'world_matrix_render');
-	var view_uniform_location = gl.getUniformLocation(program, 'view_matrix_render');
-	var projection_uniform_location = gl.getUniformLocation(program, 'projection_matrix_render');
+	world_uniform_location = gl.getUniformLocation(program, 'world_matrix_render');
+	view_uniform_location = gl.getUniformLocation(program, 'view_matrix_render');
+	projection_uniform_location = gl.getUniformLocation(program, 'projection_matrix_render');
+
+	light_location_uniform_location = gl.getUniformLocation(program, 'lPosition');
+	light_intensity_uniform_location = gl.getUniformLocation(program, 'lIntensity');
+	num_lights_uniform_location = gl.getUniformLocation(program, 'numLights');
+
+	is_star_location = gl.getUniformLocation(program, 'isStar');
 
 	//setting the values in the CPU of matrices
-	var world_matrix = new Float32Array(16);
-	var view_matrix = new Float32Array(16);
-	var projection_matrix = new Float32Array(16);
+	world_matrix = new Float32Array(16);
+	view_matrix = new Float32Array(16);
+	projection_matrix = new Float32Array(16);
+
 	mat4.identity(world_matrix);
-	mat4.lookAt(view_matrix, [0,5,-5], [0,0,0], [0,0,1]); // camera: location, position looking at, direction, that it up
+
+	cam_location = [0.0,5.0,-5.0];
+	cam_look_at = [0.0,0.0,0.0];
+	camera_up = [0,1,0]
+	cam_radius = distance(cam_location, cam_look_at);
+	FOV = glMatrix.toRadian(90)
+	mat4.lookAt(view_matrix, cam_location, cam_look_at, camera_up); // camera: location, position looking at, direction, that it up
+
+	light_location = [0.0,0.0,0.0]
+	light_intensity = [0.0,0.0,0.0]
+	lights = [[0,0,0]];
+
+
 	mat4.perspective(projection_matrix, glMatrix.toRadian(90), canvas.clientWidth/canvas.clientHeight, 0.1, 1000.0); // fov in rad, aspect ratio width/height, near plane and far plane; 
 
 	//sending to shader
 	gl.uniformMatrix4fv(world_uniform_location, gl.FALSE, world_matrix); //uniform matrix of floats. gl.FALSE just indicates that we don't want the transpose
 	gl.uniformMatrix4fv(view_uniform_location, gl.FALSE, view_matrix);
 	gl.uniformMatrix4fv(projection_uniform_location, gl.FALSE, projection_matrix);
+	gl.uniform3fv(light_location_uniform_location, light_location);
+	gl.uniform3fv(light_intensity_uniform_location, light_intensity);
+	gl.uniform1f(num_lights_uniform_location, 1);
+
+	gl.uniform1i(is_star_location, 0);
 
 	//
 	// Main render loop
 	//
-
-	var identity_matrix = new Float32Array(16);
-	mat4.identity(identity_matrix);
-	var angle = 0;
-	gl.enable(gl.DEPTH_TEST);
-
-	var loop = function() {
-
-		gl.clearColor(0.0, 0.0, 0.0, 1.0);
-		gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
-
-		//		mil Math.since start   to secs     one full rotation per six seconds 
-		angle = performance.now() / 1000     / 6 * 2 * Math.PI;
-
-		var vertices_so_far = 0
-		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
-			let object = scene_objects[object_ind];
-			calculate_forces(object, scene_objects);
-			let old_center = object.center;
-			object.center = calculate_new_position(object, .1);
-			object.last_position = old_center;
-
-			//			   input         original matrix  vector to translate by
-			mat4.translate(world_matrix, identity_matrix, object.center);
-			gl.uniformMatrix4fv(world_uniform_location, gl.FALSE, world_matrix);
-
-			gl.drawArrays(gl.TRIANGLES, vertices_so_far , object.num_vertices);
-			vertices_so_far += object.num_vertices;
-		}
-
-		requestAnimationFrame(loop)
-	};
-	//this will run the loop every time the screen is ready to refresh
-	requestAnimationFrame(loop);
+	stop = false;
+	runtime_loop();
 
 };
+
+///////////////////////////////
+/// EVENT HANDLERS ///////////
+/////////////////////////////
+
+var can = document.getElementById("canvas_div");
+can.addEventListener("mousedown", mousedown);
+can.addEventListener("mouseup", mouseup);
+//Also clear the interval when user leaves the window with mouse
+can.addEventListener("mouseout", mouseup);
+document.addEventListener('keydown', keydown);
