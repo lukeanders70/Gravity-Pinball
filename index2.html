@@ -23,16 +23,19 @@
 
 			attribute vec3 vertPosition;
 			attribute vec3 vertColor;
+			attribute vec2 aTexPosition;
 
 			varying vec3 fragColor;
 			varying vec3 fNormal;
 			varying vec3 fPosition;
+			varying vec2 vTexPosition;
 
 			uniform mat4 world_matrix_render;
 			uniform mat4 view_matrix_render;
 			uniform mat4 projection_matrix_render;
 
 			void main(){
+				vTexPosition = aTexPosition;
 				fNormal = vec3(0.0);
 				fPosition = vec3(0.0);
 				fragColor = vertColor;
@@ -50,10 +53,12 @@
 			uniform vec3 lPosition;
 			uniform vec3 lIntensity;
 			uniform bool isStar;
+			uniform sampler2D texSampler;
 
 			varying vec3 fragColor;
 			varying vec3 fNormal;
 			varying vec3 fPosition;
+			varying vec2 vTexPosition;
 
 			void main(){
 				gl_FragColor = vec4(fragColor, 1.0);
@@ -76,7 +81,7 @@
 				    }
 				}
 
-			    gl_FragColor = vec4(int_vec * fragColor, 1.0);
+			    gl_FragColor = vec4(int_vec * fragColor, 1.0) + texture2D(texSampler, vTexPosition);
 			}
 		</script>
 
