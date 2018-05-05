@@ -393,8 +393,8 @@ function mousedown(event) {
 		} else{ //we will shoot a planet
 			mousedownID = 1;
 			mousedown_time = new Date();
-			mouse_x = event.clientX
-			mouse_y = event.clientY
+			mouse_x = event.clientX - 8
+			mouse_y = event.clientY - 28
 			canvas_div.addEventListener("mousemove", target_move);
 		
 			var pointer = document.getElementById("fire_pointer");
@@ -409,7 +409,7 @@ function mousedown(event) {
 			small_pointer.style.top = mouse_y + "px";
 			small_pointer.style.display = "block"
 
-			intervalTarget = setInterval(whilemousedown, 100);
+			intervalTarget = setInterval(whilemousedown, 50);
 		}
 }
 function mouseup(event) {
@@ -458,7 +458,7 @@ function whilemousedown(){
 		power = 0;
 	}
 	power = ease(power)
-	
+
 	var pointer = document.getElementById("fire_pointer");
 	pointer.style.left = mouse_x - 30 + "px";
 	pointer.style.top = mouse_y - 30 + "px";
@@ -497,8 +497,8 @@ function keydown(event) {
 }
 
 function target_move() {
-	mouse_x = event.clientX;
-	mouse_y = event.clientY;
+	mouse_x = event.clientX - 8;
+	mouse_y = event.clientY - 28;
 }
 
 function drag_angle() {
@@ -727,6 +727,7 @@ var runtime_loop = function() {
 
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.ONE, gl.ONE);
+		gl.uniform1f(num_lights_uniform_location, lights.length - 1);
 
 		for(var light_ind = 0; light_ind < lights.length; ++light_ind){
 
@@ -879,6 +880,7 @@ var InitDemo = function(stationary = false){
 
 	light_location_uniform_location = gl.getUniformLocation(program, 'lPosition');
 	light_intensity_uniform_location = gl.getUniformLocation(program, 'lIntensity');
+	num_lights_uniform_location = gl.getUniformLocation(program, 'numLights');
 
 	is_star_location = gl.getUniformLocation(program, 'isStar');
 
@@ -909,6 +911,8 @@ var InitDemo = function(stationary = false){
 	gl.uniformMatrix4fv(projection_uniform_location, gl.FALSE, projection_matrix);
 	gl.uniform3fv(light_location_uniform_location, light_location);
 	gl.uniform3fv(light_intensity_uniform_location, light_intensity);
+	gl.uniform1f(num_lights_uniform_location, 1);
+
 	gl.uniform1i(is_star_location, 0);
 
 	//
