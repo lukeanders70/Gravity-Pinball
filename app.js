@@ -602,6 +602,51 @@ var assign_objects = function(){
 	gl.enableVertexAttribArray(colorAttribLocation);
 }
 
+/**
+ * Create and initialize a texture object
+ * @param my_image Image A JavaScript Image object that contains the
+ *                       texture map image.
+ * @returns {WebGLTexture} A "texture object"
+ * @private
+ */
+function createTexture(my_image, canvas) {
+	
+	var context = canvas.getContext("2d");
+	context.drawImage(my_image, 0, 0);
+	var imageData = context.getImageData(0, 0, 1024, 1024);
+	
+	// Create a new "texture object"
+	var texture_object = gl.createTexture();
+
+	// Make the "texture object" be the active texture object. Only the
+	// active object can be modified or used. This also declares that the
+	// texture object will hold a texture of type gl.TEXTURE_2D. The type
+	// of the texture, gl.TEXTURE_2D, can't be changed after this initialization.
+	gl.bindTexture(gl.TEXTURE_2D, texture_object);
+
+	// Set parameters of the texture object. We will set other properties
+	// of the texture map as we develop more sophisticated texture maps.
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+	// Tell gl to flip the orientation of the image on the Y axis. Most
+	// images have their origin in the upper-left corner. WebGL expects
+	// the origin of an image to be in the lower-left corner.
+	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+
+	// Store in the image in the GPU's texture object
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, imageData);
+	
+	// Make the "texture unit" 0 be the active texture unit.
+	gl.activeTexture(gl.TEXTURE0);
+
+	// Make the texture_object be the active texture. This binds the
+	// texture_object to "texture unit" 0.
+	gl.bindTexture(gl.TEXTURE_2D, texture_object);
+
+	// Tell the shader program to use "texture unit" 0
+	gl.uniform1i(program.u_Sampler, 0);
+}
+
 var runtime_loop = function() {
 
 	var identity_matrix = new Float32Array(16);
@@ -624,6 +669,7 @@ var runtime_loop = function() {
 
 		gl.disable(gl.BLEND);
 		lights = [[0.0,0.0,0.0]]
+		
 		for(var object_ind = 0; object_ind < scene_objects.length; ++object_ind){
 
 			gl.enable(gl.DEPTH_TEST);
@@ -743,7 +789,23 @@ var InitDemo = function(stationary = false){
 		consol.error("ERROR validating program!", gl.getProgramInfoLog(program));
 		return;
 	}
+	
+	var image0 = new Image(1024, 1024);
+	var imCanvas = document.createElement("canvas");
+	imCanvas.style.display = "none";
+	imCanvas.width = 1024;
+	imCanvas.height = 1024;
+	image0.src = "textures/arid.jpg";
+	image0.onload = createTexture(image0, imCanvas);
 
+
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+	program.u_Sampler = gl.getUniformLocation(program, "u_Sampler");
+	
+	
 	//
 	// create buffer
 	//
