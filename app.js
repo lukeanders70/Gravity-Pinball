@@ -653,7 +653,7 @@ var runtime_loop = function() {
 			}else{
 				gl.colorMask(true, true, true, true);
 				gl.depthMask(false)
-				change_light(light, [100, 100, 100])
+				change_light(light, [20, 15, 10])
 			}
 			gl.clearColor(0.0, 0.0, 0.0, 1.0);
 			gl.clear(gl.DEPTH_BUFFER_BIT);
