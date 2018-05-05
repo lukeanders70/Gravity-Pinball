@@ -838,7 +838,6 @@ var InitDemo = function(stationary = false){
 	image0.crossOrigin="anonymous"*/
 	document.getElementById("bod").appendChild(imCanvas);
 	
-	
 	//
 	// create buffer
 	//

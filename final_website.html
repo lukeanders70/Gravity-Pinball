@@ -82,17 +82,21 @@
 			<li>
 				<h3>Dynamic Lights</h3>
 
-				<p>In class, we saw how to use Blinn Phong shading with a specified light source. In these project, that was more complicated for two reasons. The first is that our lights are 'stars' which we treat like planets, except that they produce light. This means that our light sources are moving. Second, users have the ability to add stars themselves. This means that there are many light sources, and the total number is subject to change arbitrarily.<p>
+				<p>In class, we saw how to use Blinn-Phong shading with a specified light source. In these project, that was more complicated for two reasons. The first is that our lights are 'stars' which we treat like planets, except that they produce light. This means that our light sources are moving. Second, users have the ability to add stars themselves. This means that there are many light sources, and the total number is subject to change arbitrarily.<p>
 
 				<p> In order to make a light move with a star, we need to keep track of which planets are stars. When we go to move one of these planets, we have to update the light's position as well to be in the center of the planet. Because lights are 'uniforms' in our shaders, this means updating the uniform at each frame. We also have to be sure that we update the star locations <i>before</i> any of the other planets. Otherwise different plaents will be rendered using lights from different locations dependign on if they were before or after the star update. When we make a star, we then have to add its triangles in the opposite direction to the front of our list of triangles.</p>
 
-				<p>having a dynamically changing number of lights is harder. Instead of doing one render where we take into account all of the lights, we have to do a render for each light individually, then sum up the result to get our final image. This way, we can have only one light uniform as input to our shaders, and change it's value at each new render. Because light is additive, we get the correct result.</p>
+				<p>Having a dynamically changing number of lights is harder. Instead of doing one render where we take into account all of the lights, we have to do a render for each light individually, then sum up the result to get our final image. This way, we can have only one light uniform as input to our shaders, and change it's value at each new render. Because light is additive, we get the correct result.</p>
 			</li>
 
 			<li>
-				<h3>Bump and Texture Mapping</h3>
+				<h3>Texture Mapping</h3>
 
-				<p> <p>
+				<p>To begin working on texture mapping, we consulted an online tutorial about mapping textures in WebGL<sup>6</sup>. While this gave us most of the building blocks we needed to construct our texture mapping, figuring out where each of the specific pieces fit together in our code was more of a struggle.  One issue we especially struggled with was that we were unable to use downloaded images from our local drive, which was not immediately clear.  However, we were able to find some textures online which we could use to map onto our objects.<p>
+				
+				<p>Once we had figured out how to map textures onto our objects, we had to figure out how to assign the coordinate mapping to our spheres.  Using the same general approach that we did to rendering our triangles, we measured the angle away from directly up on our sphere and the angle of rotation around the axis that goes through the sphere vertically.  With these two angles, we mapped the x-axis of our texture map to the first angle and the y-axis to the other angle.</p>
+				
+				<p>Finally, in the fragment shader itself, we kept the Blinn-Phong shading scheme but then multiplied it by the texture map which was created by our texture sampler.  This allowed us to project the texture onto our spheres while still retaining lighting from specific sources, creating a realistic looking simulation.</p>
 			</li>
 
 		</ul>
@@ -105,10 +109,14 @@
 			<li> <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/enable"> Mozilla WebGL documentation </a> </li>
 			<li> <a href="https://cs184.eecs.berkeley.edu/lecture/simulation/slide_025"> CS184 Lecture Slides March 19<sup>th</sup>: Into to Simulation </a> </li>
 			<li> <a href="https://stackoverflow.com/questions/15505272/javascript-while-mousedown"> StackOverflow: Javascript While MouseDown </a> </li>
-			<li> <a href="https://stackoverflow.com/questions/12886286/addeventlistener-for-keydown-on-canvas"> StackOverflow: addEventListener for keydown on Canvas
-</a> </li>
+			<li> <a href="https://stackoverflow.com/questions/12886286/addeventlistener-for-keydown-on-canvas"> StackOverflow: addEventListener for keydown on Canvas</a> </li>
+			<li><a href="http://learnwebgl.brown37.net/10_surface_properties/texture_mapping_images.html"> Learn WebGL: Texture Mapping Using Images</a></li>
 
 		</ol>
+		
+		<h2> Contributions </h2>
+		<ol>Jacob Green
+			<li></li>
 
 		<div style="text-align:center;"><a href="https://www.youtube.com/watch?v=g0pZAiH-bnM&feature=youtu.be&hd=1" style="font-size:35px;"> VIDEO </a></div>
 		<div style="text-align:center;"><a href="https://docs.google.com/presentation/d/1DgpgvnQyiamcUaq1dkLUnyq8NdPVK4QJvYyoELm4bi0/edit?usp=sharing" style="font-size:35px;"> SLIDES </a></div>
