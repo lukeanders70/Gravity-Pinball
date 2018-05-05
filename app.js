@@ -2,7 +2,7 @@ var mousedownID = -1;  //indicates if mouse is down
 var angle_or_pan = 1; //indicates dragging will angle camera instead of pan
 var angle_mode = true;
 
-var add_triangle = function(v1, v2, v3, c1, c2, c3, star=false){ //if it's a star we will add to the start of the array instead
+var add_triangle = function(v1, v2, v3, c1, c2, c3, t1, t2, t3, star=false){ //if it's a star we will add to the start of the array instead
 	if(!star){
 		//vertex 1
 		triangleVertices.push(v1[0])
@@ -13,6 +13,10 @@ var add_triangle = function(v1, v2, v3, c1, c2, c3, star=false){ //if it's a sta
 		triangleVertices.push(c1[1])
 		triangleVertices.push(c1[2])
 
+		triangleVertices.push(t1[0])
+		triangleVertices.push(t1[1])
+
+
 		//vertex 2
 		triangleVertices.push(v2[0])
 		triangleVertices.push(v2[1])
@@ -21,6 +25,9 @@ var add_triangle = function(v1, v2, v3, c1, c2, c3, star=false){ //if it's a sta
 		triangleVertices.push(c2[0])
 		triangleVertices.push(c2[1])
 		triangleVertices.push(c2[2])
+
+		triangleVertices.push(t2[0])
+		triangleVertices.push(t2[1])
 
 		//vertex 3
 		triangleVertices.push(v3[0])
@@ -31,9 +38,15 @@ var add_triangle = function(v1, v2, v3, c1, c2, c3, star=false){ //if it's a sta
 		triangleVertices.push(c3[1])
 		triangleVertices.push(c3[2])
 
+		triangleVertices.push(t3[0])
+		triangleVertices.push(t3[1])
+
 	}
 	else{
 		//vertex 3
+		triangleVertices.unshift(t3[1])
+		triangleVertices.unshift(t3[0])
+
 		triangleVertices.unshift(c3[2])
 		triangleVertices.unshift(c3[1])
 		triangleVertices.unshift(c3[0])
@@ -43,7 +56,9 @@ var add_triangle = function(v1, v2, v3, c1, c2, c3, star=false){ //if it's a sta
 		triangleVertices.unshift(v3[0])
 
 		//vertex 2
-		
+		triangleVertices.unshift(t2[1])
+		triangleVertices.unshift(t2[0])
+
 		triangleVertices.unshift(c2[2])
 		triangleVertices.unshift(c2[1])
 		triangleVertices.unshift(c2[0])
@@ -53,6 +68,8 @@ var add_triangle = function(v1, v2, v3, c1, c2, c3, star=false){ //if it's a sta
 		triangleVertices.unshift(v2[0])
 
 		//vertex 1
+		triangleVertices.unshift(t1[1])
+		triangleVertices.unshift(t1[0])
 
 		triangleVertices.unshift(c1[2])
 		triangleVertices.unshift(c1[1])
@@ -76,6 +93,8 @@ var make_sphere = function(r, center, num_lat, num_lon, mass, last_position, mov
 			let y00 = (r * Math.cos(a1));
 			let z00 = (r * Math.sin(a1) * Math.cos(a2));
 
+			let u1 = a1 / Math.PI
+			let v1 = a2 / (Math.PI * 2.0)
 
 			let a3 = (lat / (num_lat + 1)) * Math.PI; //radians away from straight up
 			let a4 = ((lon + 1.0)/ (num_lon)) * Math.PI * 2.0; //radians aorund circle
@@ -84,6 +103,8 @@ var make_sphere = function(r, center, num_lat, num_lon, mass, last_position, mov
 			let y10 = (r * Math.cos(a3));
 			let z10 = (r * Math.sin(a3) * Math.cos(a4));
 
+			let u2 = a3 / Math.PI
+			let v2 = a4 / (Math.PI * 2.0)
 
 			let a5 = ((lat-1.0) / (num_lat + 1)) * Math.PI; //radians away from straight up
 			let a6 = ((lon + 1.0)/ (num_lon)) * Math.PI * 2.0; //radians aorund circle
@@ -91,6 +112,9 @@ var make_sphere = function(r, center, num_lat, num_lon, mass, last_position, mov
 			let x11 = (r * Math.sin(a6) * Math.sin(a5));
 			let y11 = (r * Math.cos(a5));
 			let z11 = (r * Math.sin(a5) * Math.cos(a6));
+
+			let u3 = a5 / Math.PI
+			let v3 = a6 / (Math.PI * 2.0)
 
 
 			let a7 = ((lat-1.0) / (num_lat + 1)) * Math.PI; //radians away from straight up
@@ -100,8 +124,11 @@ var make_sphere = function(r, center, num_lat, num_lon, mass, last_position, mov
 			let y01 = (r * Math.cos(a7));
 			let z01 = (r * Math.sin(a7) * Math.cos(a8));
 
-			add_triangle([x00,y00,z00],[x10,y10,z10],[x01,y01,z01],[1.0,1.0,0.0],[0.7,0.0,0.3],[1.0,0.0,0.0], star);
-			add_triangle([x10,y10,z10],[x11,y11,z11],[x01,y01,z01],[0.0,1.0,0.0],[0.0,0.0,1.0],[0.0,0.3,0.7], star);
+			let u4 = a7 / Math.PI
+			let v4 = a8 / (Math.PI * 2.0)
+
+			add_triangle([x00,y00,z00],[x10,y10,z10],[x01,y01,z01],[1.0,1.0,0.0],[0.7,0.0,0.3],[1.0,0.0,0.0], [u1, v1], [u2, v2], [u4,v4], star);
+			add_triangle([x10,y10,z10],[x11,y11,z11],[x01,y01,z01],[0.0,1.0,0.0],[0.0,0.0,1.0],[0.0,0.3,0.7], [u2, v2], [u3, v3], [u4, v4], star);
 
 			num_vertices += 6;
 
@@ -382,7 +409,7 @@ function mousedown(event) {
 			small_pointer.style.top = mouse_y + "px";
 			small_pointer.style.display = "block"
 
-			intervalTarget = setInterval(whilemousedown, 20);
+			intervalTarget = setInterval(whilemousedown, 100);
 		}
 }
 function mouseup(event) {
@@ -579,13 +606,14 @@ var assign_objects = function(){
 
 	var positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
 	var colorAttribLocation = gl.getAttribLocation(program, 'vertColor');
+	var textureAttribLocation = gl.getAttribLocation(program, 'aTexPosition');
 
 	gl.vertexAttribPointer(
 		positionAttribLocation, //Attribute location
 		3, //number of elements per attribute
 		gl.FLOAT, //type of elements
 		gl.FALSE, //no idea what this does
-		6 * Float32Array.BYTES_PER_ELEMENT, //Size of an individual vertex
+		8 * Float32Array.BYTES_PER_ELEMENT, //Size of an individual vertex
 		0 // Offset from the beginning of a Math.single vertex to this attribute 
 	);
 
@@ -594,12 +622,23 @@ var assign_objects = function(){
 		3, //number of elements per attribute
 		gl.FLOAT, //type of elements
 		gl.FALSE, //no idea what this does
-		6 * Float32Array.BYTES_PER_ELEMENT, //Size of an individual vertex
+		8 * Float32Array.BYTES_PER_ELEMENT, //Size of an individual vertex
 		3 * Float32Array.BYTES_PER_ELEMENT // Offset from the beginning of a Math.single vertex to this attribute 
+	);
+
+	gl.vertexAttribPointer(
+		textureAttribLocation, //Attribute location
+		2, //number of elements per attribute
+		gl.FLOAT, //type of elements
+		gl.FALSE, //no idea what this does
+		8 * Float32Array.BYTES_PER_ELEMENT, //Size of an individual vertex
+		6 * Float32Array.BYTES_PER_ELEMENT // Offset from the beginning of a Math.single vertex to this attribute 
 	);
 
 	gl.enableVertexAttribArray(positionAttribLocation);
 	gl.enableVertexAttribArray(colorAttribLocation);
+	gl.enableVertexAttribArray(textureAttribLocation);
+
 }
 
 /**
@@ -609,9 +648,9 @@ var assign_objects = function(){
  * @returns {WebGLTexture} A "texture object"
  * @private
  */
-function createTexture(my_image, canvas) {
+function createTexture(my_image, imCanvas) {
 	
-	var context = canvas.getContext("2d");
+	var context = imCanvas.getContext("2d");
 	context.drawImage(my_image, 0, 0);
 	var imageData = context.getImageData(0, 0, 1024, 1024);
 	
@@ -795,15 +834,9 @@ var InitDemo = function(stationary = false){
 	imCanvas.style.display = "none";
 	imCanvas.width = 1024;
 	imCanvas.height = 1024;
-	image0.src = "textures/arid.jpg";
-	image0.onload = createTexture(image0, imCanvas);
-
-
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
-	program.u_Sampler = gl.getUniformLocation(program, "u_Sampler");
+/*	image0.src = "https://images.pexels.com/photos/8892/pexels-photo.jpg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260";
+	image0.crossOrigin="anonymous"*/
+	document.getElementById("bod").appendChild(imCanvas);
 	
 	
 	//
@@ -826,6 +859,17 @@ var InitDemo = function(stationary = false){
 	assign_objects();
 	// tell open GL what program we're uMath.sing
 	gl.useProgram(program);
+
+	program.u_Sampler = gl.getUniformLocation(program, "u_Sampler");
+
+
+	image0.onload = createTexture(document.getElementById("immy"), imCanvas);
+
+
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
 
 
 	//creating pointers
