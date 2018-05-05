@@ -479,12 +479,14 @@ function keydown(event) {
 		left(speed);
 	}
 	if(event.keyCode == 38){ //up arrow
+		event.preventDefault()
 		up(speed);
 	}
 	if(event.keyCode == 39){ //right arrow
 		right(speed);
 	}
 	if(event.keyCode == 40){ //down arrow
+		event.preventDefault()
 		down(speed);
 	}
 	if(event.keyCode == 87){ //w key
